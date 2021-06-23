@@ -1,4 +1,4 @@
-module Main exposing (Uniforms, Vertex, fragmentShader, main, mesh, perspective, vertexShader, view)
+module Main exposing (Uniforms, Vertex, fragmentShader, main, mesh, vertexShader, view)
 
 import Browser
 import Browser.Events exposing (onAnimationFrameDelta)
@@ -23,24 +23,18 @@ main =
 view : Float -> Html msg
 view t =
     WebGL.toHtml
-        [ width 400
-        , height 400
+        [ width 800
+        , height 800
         , style "display" "block"
         , style "background-color" "black"
+        , style "margin" "auto"
         ]
         [ WebGL.entity
             vertexShader
             fragmentShader
             mesh
-            { perspective = perspective (t / 1000) }
+            { perspective = Mat4.makeOrtho2D 0 800 0 800 }
         ]
-
-
-perspective : Float -> Mat4
-perspective t =
-    Mat4.mul
-        (Mat4.makePerspective 45 1 0.01 100)
-        (Mat4.makeLookAt (vec3 (4 * cos t) 0 (4 * sin t)) (vec3 0 0 0) (vec3 0 1 0))
 
 
 
@@ -56,13 +50,13 @@ type alias Vertex =
 mesh : Mesh Vertex
 mesh =
     WebGL.triangles
-        [ ( Vertex (vec3 0 0 0) (vec3 1 0 0)
-          , Vertex (vec3 1 0 0) (vec3 0 1 0)
-          , Vertex (vec3 1 1 0) (vec3 0 1 1)
+        [ ( Vertex (vec3 0 0 0) (vec3 1 1 1)
+          , Vertex (vec3 50 0 0) (vec3 1 1 1)
+          , Vertex (vec3 50 50 0) (vec3 1 1 1)
           )
-        , ( Vertex (vec3 0 0 0) (vec3 0 1 1)
-          , Vertex (vec3 0 1 0) (vec3 0 1 0)
-          , Vertex (vec3 1 1 0) (vec3 0 1 1)
+        , ( Vertex (vec3 0 0 0) (vec3 1 1 1)
+          , Vertex (vec3 0 50 0) (vec3 1 1 1)
+          , Vertex (vec3 50 50 0) (vec3 1 1 1)
           )
         ]
 
@@ -84,7 +78,7 @@ vertexShader =
         varying vec3 vcolor;
         void main () {
             gl_Position = perspective * vec4(position, 1.0);
-            vcolor = color;
+            vcolor = color * vec3(1, 0, 0);
         }
     |]
 
