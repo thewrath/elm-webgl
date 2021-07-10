@@ -5,6 +5,7 @@ import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Shaders exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh, Shader)
+import WebGL.Texture as Texture exposing (Texture)
 
 
 
@@ -26,16 +27,30 @@ mesh =
 
 
 
--- Function to render sprite
+-- Render sprite in WebGL 2D context
 -- @Todo use curry to enable modification of vertex and fragment shader
 -- @Todo enable modification of position
--- @Todo render sprite instead of rectangle
 
 
-renderSprite : Float -> Float -> String -> Mat4 -> Entity
-renderSprite x y image camera =
+renderSprite : Float -> Float -> Texture -> Mat4 -> Entity
+renderSprite x y texture camera =
+    WebGL.entity
+        vertexShader
+        texturedFragmentShader
+        mesh
+        { perspective = camera
+        , texture = texture
+        }
+
+
+
+-- Render square in WebGL 2D context
+
+
+renderSquare : Float -> Float -> String -> Mat4 -> Entity
+renderSquare x y image camera =
     WebGL.entity
         vertexShader
         fragmentShader
         mesh
-        { perspective = Mat4.makeOrtho2D 0 800 0 800 }
+        { perspective = camera }
