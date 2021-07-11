@@ -9,8 +9,10 @@ import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Render exposing (renderSprite)
 import Shaders exposing (..)
+import Task exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh, Shader)
+import WebGL.Texture as Texture exposing (Error, Texture)
 
 
 
@@ -72,18 +74,24 @@ update action model =
 -- Draw stuff here
 
 
-view : Float -> Html msg
-view t =
-    WebGL.toHtml
-        [ width 800
-        , height 800
-        , style "display" "block"
-        , style "background-color" "black"
-        , style "margin" "auto"
-        ]
-        [ renderSprite 50 50 "test" (Mat4.makeOrtho2D 0 800 0 800)
-        , renderSprite 250 50 "test" (Mat4.makeOrtho2D 0 800 0 800)
-        ]
+view : Model -> Html msg
+view model =
+    case model.textures of
+        -- textures not loaded
+        Nothing ->
+            text "Loading ..."
+
+        Just textures ->
+            WebGL.toHtml
+                [ width 800
+                , height 800
+                , style "display" "block"
+                , style "background-color" "black"
+                , style "margin" "auto"
+                ]
+                [ renderSprite 50 50 (List.first textures) (Mat4.makeOrtho2D 0 800 0 800)
+                , renderSprite 250 50 (List.first textures) (Mat4.makeOrtho2D 0 800 0 800)
+                ]
 
 
 
@@ -92,8 +100,8 @@ view t =
 
 
 loadTextures : List String -> Cmd Action
-loadTextures textures =
-    textures
+loadTextures textureNames =
+    textureNames
         |> List.map Texture.load
         -- turn textures into list of "loading texture task"
         |> Task.sequence

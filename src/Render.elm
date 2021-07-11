@@ -1,6 +1,7 @@
 module Render exposing (renderSprite)
 
 import Math.Matrix4 as Mat4 exposing (Mat4)
+import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Shaders exposing (..)
 import Type exposing (..)
@@ -26,6 +27,20 @@ mesh =
         ]
 
 
+textureMesh : Mesh TextureVertex
+textureMesh =
+    WebGL.triangles
+        [ ( TextureVertex (vec3 0 0 0) (vec2 1 1)
+          , TextureVertex (vec3 1 0 0) (vec2 1 1)
+          , TextureVertex (vec3 1 1 0) (vec2 1 1)
+          )
+        , ( TextureVertex (vec3 0 0 0) (vec2 1 1)
+          , TextureVertex (vec3 0 1 0) (vec2 1 1)
+          , TextureVertex (vec3 1 1 0) (vec2 1 1)
+          )
+        ]
+
+
 
 -- Render sprite in WebGL 2D context
 -- @Todo use curry to enable modification of vertex and fragment shader
@@ -35,9 +50,9 @@ mesh =
 renderSprite : Float -> Float -> Texture -> Mat4 -> Entity
 renderSprite x y texture camera =
     WebGL.entity
-        vertexShader
+        texturedVertexShader
         texturedFragmentShader
-        mesh
+        textureMesh
         { perspective = camera
         , texture = texture
         }

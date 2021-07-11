@@ -1,11 +1,12 @@
 module Shaders exposing
-    ( Uniforms
-    , fragmentShader
+    ( fragmentShader
     , texturedFragmentShader
+    , texturedVertexShader
     , vertexShader
     )
 
 import Math.Matrix4 as Mat4 exposing (Mat4)
+import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Type exposing (..)
 import WebGL exposing (Mesh, Shader)
@@ -37,7 +38,21 @@ fragmentShader =
     |]
 
 
-texturedFragmentShader : Shader {} { perspective : Mat4, texture : Texture } { vcolor : vec3 }
+texturedVertexShader : Shader TextureVertex { perspective : Mat4, texture : Texture } { vcoord : Vec2 }
+texturedVertexShader =
+    [glsl|
+        attribute vec3 position;
+        attribute vec2 coord;
+        uniform mat4 perspective;
+        varying vec2 vcoord;
+        void main () {
+          gl_Position = perspective * vec4(position, 1.0);
+          vcoord = coord.xy;
+        }
+    |]
+
+
+texturedFragmentShader : Shader {} { perspective : Mat4, texture : Texture } { vcoord : Vec2 }
 texturedFragmentShader =
     [glsl|
         precision mediump float;
