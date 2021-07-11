@@ -7,7 +7,7 @@ import Html.Attributes exposing (height, style, width)
 import Json.Decode exposing (Value)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Render exposing (renderSprite)
+import Render exposing (renderSprite, renderSquare)
 import Shaders exposing (..)
 import Task exposing (..)
 import Type exposing (..)
@@ -98,9 +98,13 @@ view model =
                         , style "background-color" "black"
                         , style "margin" "auto"
                         ]
-                        [ renderSprite 50 50 texture (Mat4.makeOrtho2D 0 800 0 800)
-                        , renderSprite 250 50 texture (Mat4.makeOrtho2D 0 800 0 800)
+                        [ renderSprite 50 50 texture orthographicCamera
                         ]
+
+
+orthographicCamera : Mat4
+orthographicCamera =
+    Mat4.makeOrtho2D 0 800 0 800
 
 
 

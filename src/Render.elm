@@ -1,6 +1,6 @@
-module Render exposing (renderSprite)
+module Render exposing (renderSprite, renderSquare)
 
-import Math.Matrix4 as Mat4 exposing (Mat4)
+import Math.Matrix4 as Mat4 exposing (Mat4, identity, transform, translate3)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Shaders exposing (..)
@@ -27,8 +27,13 @@ mesh =
         ]
 
 
-textureMesh : Mesh TextureVertex
-textureMesh =
+
+-- Create a textured mesh transformed via the position matrix
+-- @Todo take a record that contains all the matrices for the transformation of the mesh
+
+
+textureMesh : Mat4 -> Mesh TextureVertex
+textureMesh position =
     let
         topLeft =
             TextureVertex (vec3 -1 1 1) (vec2 0 1)
@@ -41,17 +46,31 @@ textureMesh =
 
         bottomRight =
             TextureVertex (vec3 1 -1 1) (vec2 1 0)
+
+        vertices =
+            [ ( topLeft, topRight, bottomLeft )
+            , ( bottomLeft, topRight, bottomRight )
+            ]
+
+        -- @Todo move in other function
+        transformMat =
+            position
+
+        transform vertex =
+            { vertex
+                | position =
+                    Mat4.transform transformMat vertex.position
+            }
+
+        transformTriangle ( a, b, c ) =
+            ( transform a, transform b, transform c )
     in
-    WebGL.triangles
-        [ ( topLeft, topRight, bottomLeft )
-        , ( bottomLeft, topRight, bottomRight )
-        ]
+    List.map transformTriangle vertices |> WebGL.triangles
 
 
 
 -- Render sprite in WebGL 2D context
 -- @Todo use curry to enable modification of vertex and fragment shader
--- @Todo enable modification of position
 
 
 renderSprite : Float -> Float -> Texture -> Mat4 -> Entity
@@ -59,7 +78,7 @@ renderSprite x y texture camera =
     WebGL.entity
         texturedVertexShader
         texturedFragmentShader
-        textureMesh
+        (textureMesh (Mat4.identity |> Mat4.translate3 x y 1))
         { perspective = camera
         , texture = texture
         }
@@ -69,8 +88,8 @@ renderSprite x y texture camera =
 -- Render square in WebGL 2D context
 
 
-renderSquare : Float -> Float -> String -> Mat4 -> Entity
-renderSquare x y image camera =
+renderSquare : Float -> Float -> Mat4 -> Entity
+renderSquare x y camera =
     WebGL.entity
         vertexShader
         fragmentShader
