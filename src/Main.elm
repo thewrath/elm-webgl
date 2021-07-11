@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Browser.Events exposing (onAnimationFrameDelta)
-import Html exposing (Html)
+import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
 import Json.Decode exposing (Value)
 import Math.Matrix4 as Mat4 exposing (Mat4)
@@ -33,13 +33,13 @@ type Action
     | TexturesLoaded (List Texture)
 
 
-main : Program Value Float Float
+main : Program Value Model Action
 main =
     Browser.element
         { init = \_ -> init
         , view = view
-        , subscriptions = \_ -> onAnimationFrameDelta Basics.identity
-        , update = \elapsed currentTime -> ( elapsed + currentTime, Cmd.none )
+        , subscriptions = \_ -> Sub.none
+        , update = update
         }
 
 
@@ -51,7 +51,7 @@ init : ( Model, Cmd Action )
 init =
     let
         textures =
-            [ "texture/thwomp-face.jpg", "texture/thwomp-side.jpg" ]
+            [ "../textures/thwomp-face.jpg", "../textures/thwomp-side.jpg" ]
     in
     ( { textures = Nothing }, Cmd.batch [ loadTextures textures ] )
 
@@ -64,7 +64,7 @@ update : Action -> Model -> ( Model, Cmd Action )
 update action model =
     case action of
         TexturesLoaded textures ->
-            ( { model | textures = textures }, Cmd.none )
+            ( { model | textures = Just textures }, Cmd.none )
 
         TexturesError err ->
             ( model, Cmd.none )
@@ -82,16 +82,25 @@ view model =
             text "Loading ..."
 
         Just textures ->
-            WebGL.toHtml
-                [ width 800
-                , height 800
-                , style "display" "block"
-                , style "background-color" "black"
-                , style "margin" "auto"
-                ]
-                [ renderSprite 50 50 (List.first textures) (Mat4.makeOrtho2D 0 800 0 800)
-                , renderSprite 250 50 (List.first textures) (Mat4.makeOrtho2D 0 800 0 800)
-                ]
+            let
+                firstTexture =
+                    List.head textures
+            in
+            case firstTexture of
+                Nothing ->
+                    text "Texture loading error"
+
+                Just texture ->
+                    WebGL.toHtml
+                        [ width 800
+                        , height 800
+                        , style "display" "block"
+                        , style "background-color" "black"
+                        , style "margin" "auto"
+                        ]
+                        [ renderSprite 50 50 texture (Mat4.makeOrtho2D 0 800 0 800)
+                        , renderSprite 250 50 texture (Mat4.makeOrtho2D 0 800 0 800)
+                        ]
 
 
 
@@ -106,16 +115,7 @@ loadTextures textureNames =
         -- turn textures into list of "loading texture task"
         |> Task.sequence
         -- create a new sequence task (task compose of a list of tasks)
-        |> Task.andThen
-            -- @Todo : Maybe can be simplified ?
-            (\textures ->
-                case textures of
-                    textures ->
-                        Task.succeed textures
-
-                    _ ->
-                        Task.fail Texture.LoadError
-            )
+        |> Task.andThen Task.succeed
         -- Turn task result into message that can be handle in update function
         |> Task.attempt
             (\result ->

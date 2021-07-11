@@ -29,15 +29,22 @@ mesh =
 
 textureMesh : Mesh TextureVertex
 textureMesh =
+    let
+        topLeft =
+            TextureVertex (vec3 -1 1 1) (vec2 0 1)
+
+        topRight =
+            TextureVertex (vec3 1 1 1) (vec2 1 1)
+
+        bottomLeft =
+            TextureVertex (vec3 -1 -1 1) (vec2 0 0)
+
+        bottomRight =
+            TextureVertex (vec3 1 -1 1) (vec2 1 0)
+    in
     WebGL.triangles
-        [ ( TextureVertex (vec3 0 0 0) (vec2 1 1)
-          , TextureVertex (vec3 1 0 0) (vec2 1 1)
-          , TextureVertex (vec3 1 1 0) (vec2 1 1)
-          )
-        , ( TextureVertex (vec3 0 0 0) (vec2 1 1)
-          , TextureVertex (vec3 0 1 0) (vec2 1 1)
-          , TextureVertex (vec3 1 1 0) (vec2 1 1)
-          )
+        [ ( topLeft, topRight, bottomLeft )
+        , ( bottomLeft, topRight, bottomRight )
         ]
 
 
