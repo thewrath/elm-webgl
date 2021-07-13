@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Browser.Events exposing (onAnimationFrameDelta)
+import Debug
 import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
 import Json.Decode exposing (Value)
@@ -91,6 +92,10 @@ view model =
                     text "Texture loading error"
 
                 Just texture ->
+                    let
+                        _ =
+                            Debug.log "size :" (Texture.size texture)
+                    in
                     WebGL.toHtml
                         [ width 800
                         , height 800

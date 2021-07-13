@@ -13,7 +13,7 @@ import WebGL exposing (Mesh, Shader)
 import WebGL.Texture as Texture exposing (Texture)
 
 
-vertexShader : Shader Vertex { perspective : Mat4 } { vcolor : Vec3 }
+vertexShader : Shader ColoredVertex { perspective : Mat4 } { vcolor : Vec3 }
 vertexShader =
     [glsl|
         attribute vec3 position;

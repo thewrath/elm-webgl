@@ -4,6 +4,7 @@ import Math.Matrix4 as Mat4 exposing (Mat4, identity, transform, translate3)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Shaders exposing (..)
+import Transform exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh, Shader)
 import WebGL.Texture as Texture exposing (Texture)
@@ -13,16 +14,16 @@ import WebGL.Texture as Texture exposing (Texture)
 -- Mesh
 
 
-mesh : Mesh Vertex
+mesh : Mesh ColoredVertex
 mesh =
     WebGL.triangles
-        [ ( Vertex (vec3 0 0 0) (vec3 1 1 1)
-          , Vertex (vec3 1 0 0) (vec3 1 1 1)
-          , Vertex (vec3 1 1 0) (vec3 1 1 1)
+        [ ( ColoredVertex (vec3 0 0 0) (vec3 1 1 1)
+          , ColoredVertex (vec3 1 0 0) (vec3 1 1 1)
+          , ColoredVertex (vec3 1 1 0) (vec3 1 1 1)
           )
-        , ( Vertex (vec3 0 0 0) (vec3 1 1 1)
-          , Vertex (vec3 0 1 0) (vec3 1 1 1)
-          , Vertex (vec3 1 1 0) (vec3 1 1 1)
+        , ( ColoredVertex (vec3 0 0 0) (vec3 1 1 1)
+          , ColoredVertex (vec3 0 1 0) (vec3 1 1 1)
+          , ColoredVertex (vec3 1 1 0) (vec3 1 1 1)
           )
         ]
 
@@ -33,39 +34,26 @@ mesh =
 
 
 textureMesh : Mat4 -> Mesh TextureVertex
-textureMesh position =
+textureMesh transform =
     let
         topLeft =
-            TextureVertex (vec3 -1 1 1) (vec2 0 1)
+            TextureVertex (vec3 -1 1 0) (vec2 0 1)
 
         topRight =
-            TextureVertex (vec3 1 1 1) (vec2 1 1)
+            TextureVertex (vec3 1 1 0) (vec2 1 1)
 
         bottomLeft =
-            TextureVertex (vec3 -1 -1 1) (vec2 0 0)
+            TextureVertex (vec3 -1 -1 0) (vec2 0 0)
 
         bottomRight =
-            TextureVertex (vec3 1 -1 1) (vec2 1 0)
+            TextureVertex (vec3 1 -1 0) (vec2 1 0)
 
         vertices =
             [ ( topLeft, topRight, bottomLeft )
             , ( bottomLeft, topRight, bottomRight )
             ]
-
-        -- @Todo move in other function
-        transformMat =
-            position
-
-        transform vertex =
-            { vertex
-                | position =
-                    Mat4.transform transformMat vertex.position
-            }
-
-        transformTriangle ( a, b, c ) =
-            ( transform a, transform b, transform c )
     in
-    List.map transformTriangle vertices |> WebGL.triangles
+    List.map (transformTriangle transform transformVertex) vertices |> WebGL.triangles
 
 
 
@@ -75,10 +63,23 @@ textureMesh position =
 
 renderSprite : Float -> Float -> Texture -> Mat4 -> Entity
 renderSprite x y texture camera =
+    let
+        translation =
+            Mat4.identity |> Mat4.translate3 x y 1
+
+        rotation =
+            Mat4.identity
+
+        scale =
+            Mat4.identity
+
+        transform =
+            Mat4.mul (Mat4.mul translation rotation) scale
+    in
     WebGL.entity
         texturedVertexShader
         texturedFragmentShader
-        (textureMesh (Mat4.identity |> Mat4.translate3 x y 1))
+        (textureMesh transform)
         { perspective = camera
         , texture = texture
         }
@@ -90,6 +91,19 @@ renderSprite x y texture camera =
 
 renderSquare : Float -> Float -> Mat4 -> Entity
 renderSquare x y camera =
+    let
+        translation =
+            Mat4.identity |> Mat4.translate3 x y 1
+
+        rotation =
+            Mat4.identity
+
+        scale =
+            Mat4.makeScale (vec3 50 50 1)
+
+        transform =
+            Mat4.mul (Mat4.mul translation rotation) scale
+    in
     WebGL.entity
         vertexShader
         fragmentShader
