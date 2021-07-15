@@ -1,4 +1,4 @@
-module Render exposing (renderSprite, renderSquare)
+module Render exposing (MeshBank, initMeshBank, renderSprite, renderSquare)
 
 import Math.Matrix4 as Mat4 exposing (Mat4, identity, transform, translate3)
 import Math.Vector2 as Vec2 exposing (Vec2, getX, getY, vec2)
@@ -14,8 +14,21 @@ import WebGL.Texture as Texture exposing (Texture)
 -- Mesh
 
 
-coloredMesh : Mat4 -> Mesh ColoredVertex
-coloredMesh transform =
+type alias MeshBank =
+    { coloredMesh : Mesh ColoredVertex
+    , textureMesh : Mesh TextureVertex
+    }
+
+
+initMeshBank : MeshBank
+initMeshBank =
+    { coloredMesh = coloredMesh
+    , textureMesh = textureMesh
+    }
+
+
+coloredMesh : Mesh ColoredVertex
+coloredMesh =
     let
         vertices =
             [ ( ColoredVertex (vec3 0 0 0) (vec3 1 1 1)
@@ -28,7 +41,7 @@ coloredMesh transform =
               )
             ]
     in
-    List.map (transformTriangle transform transformVertex) vertices |> WebGL.triangles
+    vertices |> WebGL.triangles
 
 
 
@@ -36,8 +49,8 @@ coloredMesh transform =
 -- @Todo take a record that contains all the matrices for the transformation of the mesh
 
 
-textureMesh : Mat4 -> Mesh TextureVertex
-textureMesh transform =
+textureMesh : Mesh TextureVertex
+textureMesh =
     let
         topLeft =
             TextureVertex (vec3 -1 1 0) (vec2 0 1)
@@ -56,7 +69,7 @@ textureMesh transform =
             , ( bottomLeft, topRight, bottomRight )
             ]
     in
-    List.map (transformTriangle transform transformVertex) vertices |> WebGL.triangles
+    vertices |> WebGL.triangles
 
 
 
@@ -64,8 +77,8 @@ textureMesh transform =
 -- @Todo use curry to enable modification of vertex and fragment shader
 
 
-renderSprite : Position -> Size -> Float -> Texture -> Camera -> Entity
-renderSprite position size rotation texture camera =
+renderSprite : Mesh TextureVertex -> Position -> Size -> Float -> Texture -> Camera -> Entity
+renderSprite mesh position size rotation texture camera =
     let
         transform =
             Mat4.identity
@@ -76,8 +89,9 @@ renderSprite position size rotation texture camera =
     WebGL.entity
         texturedVertexShader
         texturedFragmentShader
-        (textureMesh transform)
+        mesh
         { perspective = camera
+        , transform = transform
         , texture = texture
         }
 
@@ -86,8 +100,8 @@ renderSprite position size rotation texture camera =
 -- Render square in WebGL 2D context
 
 
-renderSquare : Position -> Size -> Float -> Camera -> Entity
-renderSquare position size rotation camera =
+renderSquare : Mesh ColoredVertex -> Position -> Size -> Float -> Camera -> Entity
+renderSquare mesh position size rotation camera =
     let
         transform =
             Mat4.identity
@@ -98,5 +112,7 @@ renderSquare position size rotation camera =
     WebGL.entity
         vertexShader
         fragmentShader
-        (coloredMesh transform)
-        { perspective = camera }
+        mesh
+        { perspective = camera
+        , transform = transform
+        }

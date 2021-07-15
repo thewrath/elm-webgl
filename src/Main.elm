@@ -9,7 +9,7 @@ import Json.Decode exposing (Value)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Render exposing (renderSprite, renderSquare)
+import Render exposing (MeshBank, initMeshBank, renderSprite, renderSquare)
 import Shaders exposing (..)
 import Task exposing (..)
 import Type exposing (..)
@@ -21,8 +21,16 @@ import WebGL.Texture as Texture exposing (Error, Texture)
 -- Application Model (textures)
 
 
+type alias Sprite =
+    { position : Vec2
+    , angle : Float
+    }
+
+
 type alias Model =
     { textures : Maybe (List Texture)
+    , meshBank : MeshBank
+    , sprite : Sprite
     }
 
 
@@ -33,6 +41,7 @@ type alias Model =
 type Action
     = TexturesError Error
     | TexturesLoaded (List Texture)
+    | AnimationFrame Float
 
 
 main : Program Value Model Action
@@ -40,7 +49,7 @@ main =
     Browser.element
         { init = \_ -> init
         , view = view
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> onAnimationFrameDelta (\f -> AnimationFrame f)
         , update = update
         }
 
@@ -54,8 +63,11 @@ init =
     let
         textures =
             [ "../textures/thwomp-face.jpg", "../textures/thwomp-side.jpg" ]
+
+        sprite =
+            { position = vec2 150 150, angle = 0 }
     in
-    ( { textures = Nothing }, Cmd.batch [ loadTextures textures ] )
+    ( { textures = Nothing, meshBank = initMeshBank, sprite = sprite }, Cmd.batch [ loadTextures textures ] )
 
 
 
@@ -70,6 +82,18 @@ update action model =
 
         TexturesError err ->
             ( model, Cmd.none )
+
+        AnimationFrame delta ->
+            ( updateSprite model, Cmd.none )
+
+
+updateSprite : Model -> Model
+updateSprite model =
+    let
+        sprite =
+            { position = model.sprite.position, angle = model.sprite.angle + 1 } |> Debug.log "sprite"
+    in
+    { model | sprite = sprite }
 
 
 
@@ -96,17 +120,23 @@ view model =
                     let
                         _ =
                             Debug.log "size :" (Texture.size texture)
+
+                        textureMesh =
+                            model.meshBank.textureMesh
+
+                        coloredMesh =
+                            model.meshBank.coloredMesh
                     in
                     WebGL.toHtml
                         [ width 800
                         , height 800
-                        , style "display" "block"
+                        , style "displaMeshy" "block"
                         , style "background-color" "black"
                         , style "margin" "auto"
                         ]
-                        [ renderSprite (vec2 150 150) (vec2 50 50) 45 texture orthographicCamera
-                        , renderSprite (vec2 300 150) (vec2 50 50) 35 texture orthographicCamera
-                        , renderSquare (vec2 150 300) (vec2 50 50) 90 orthographicCamera
+                        [ renderSprite textureMesh model.sprite.position (vec2 50 50) model.sprite.angle texture orthographicCamera
+                        , renderSprite textureMesh (vec2 300 150) (vec2 50 50) 35 texture orthographicCamera
+                        , renderSquare coloredMesh (vec2 150 300) (vec2 50 50) 90 orthographicCamera
                         ]
 
 

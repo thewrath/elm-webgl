@@ -13,21 +13,22 @@ import WebGL exposing (Mesh, Shader)
 import WebGL.Texture as Texture exposing (Texture)
 
 
-vertexShader : Shader ColoredVertex { perspective : Mat4 } { vcolor : Vec3 }
+vertexShader : Shader ColoredVertex { perspective : Mat4, transform : Mat4 } { vcolor : Vec3 }
 vertexShader =
     [glsl|
         attribute vec3 position;
         attribute vec3 color;
         uniform mat4 perspective;
+        uniform mat4 transform;
         varying vec3 vcolor;
         void main () {
-            gl_Position = perspective * vec4(position, 1.0);
+            gl_Position = perspective * transform * vec4(position, 1.0);
             vcolor = color * vec3(1, 0, 0);
         }
     |]
 
 
-fragmentShader : Shader {} { perspective : Mat4 } { vcolor : Vec3 }
+fragmentShader : Shader {} { perspective : Mat4, transform : Mat4 } { vcolor : Vec3 }
 fragmentShader =
     [glsl|
         precision mediump float;
@@ -38,21 +39,22 @@ fragmentShader =
     |]
 
 
-texturedVertexShader : Shader TextureVertex { perspective : Mat4, texture : Texture } { vcoord : Vec2 }
+texturedVertexShader : Shader TextureVertex { perspective : Mat4, transform : Mat4, texture : Texture } { vcoord : Vec2 }
 texturedVertexShader =
     [glsl|
         attribute vec3 position;
         attribute vec2 coord;
         uniform mat4 perspective;
+        uniform mat4 transform;
         varying vec2 vcoord;
         void main () {
-          gl_Position = perspective * vec4(position, 1.0);
+          gl_Position = perspective * transform * vec4(position, 1.0);
           vcoord = coord.xy;
         }
     |]
 
 
-texturedFragmentShader : Shader {} { perspective : Mat4, texture : Texture } { vcoord : Vec2 }
+texturedFragmentShader : Shader {} { perspective : Mat4, transform : Mat4, texture : Texture } { vcoord : Vec2 }
 texturedFragmentShader =
     [glsl|
         precision mediump float;
