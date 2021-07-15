@@ -1,7 +1,7 @@
 module Render exposing (renderSprite, renderSquare)
 
 import Math.Matrix4 as Mat4 exposing (Mat4, identity, transform, translate3)
-import Math.Vector2 as Vec2 exposing (Vec2, vec2)
+import Math.Vector2 as Vec2 exposing (Vec2, getX, getY, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Shaders exposing (..)
 import Transform exposing (..)
@@ -14,18 +14,21 @@ import WebGL.Texture as Texture exposing (Texture)
 -- Mesh
 
 
-mesh : Mesh ColoredVertex
-mesh =
-    WebGL.triangles
-        [ ( ColoredVertex (vec3 0 0 0) (vec3 1 1 1)
-          , ColoredVertex (vec3 1 0 0) (vec3 1 1 1)
-          , ColoredVertex (vec3 1 1 0) (vec3 1 1 1)
-          )
-        , ( ColoredVertex (vec3 0 0 0) (vec3 1 1 1)
-          , ColoredVertex (vec3 0 1 0) (vec3 1 1 1)
-          , ColoredVertex (vec3 1 1 0) (vec3 1 1 1)
-          )
-        ]
+coloredMesh : Mat4 -> Mesh ColoredVertex
+coloredMesh transform =
+    let
+        vertices =
+            [ ( ColoredVertex (vec3 0 0 0) (vec3 1 1 1)
+              , ColoredVertex (vec3 1 0 0) (vec3 1 1 1)
+              , ColoredVertex (vec3 1 1 0) (vec3 1 1 1)
+              )
+            , ( ColoredVertex (vec3 0 0 0) (vec3 1 1 1)
+              , ColoredVertex (vec3 0 1 0) (vec3 1 1 1)
+              , ColoredVertex (vec3 1 1 0) (vec3 1 1 1)
+              )
+            ]
+    in
+    List.map (transformTriangle transform transformVertex) vertices |> WebGL.triangles
 
 
 
@@ -61,20 +64,14 @@ textureMesh transform =
 -- @Todo use curry to enable modification of vertex and fragment shader
 
 
-renderSprite : Float -> Float -> Texture -> Mat4 -> Entity
-renderSprite x y texture camera =
+renderSprite : Position -> Size -> Float -> Texture -> Camera -> Entity
+renderSprite position size rotation texture camera =
     let
-        translation =
-            Mat4.identity |> Mat4.translate3 x y 1
-
-        rotation =
-            Mat4.identity
-
-        scale =
-            Mat4.identity
-
         transform =
-            Mat4.mul (Mat4.mul translation rotation) scale
+            Mat4.identity
+                |> Mat4.translate (vec3 (getX position) (getY position) 1)
+                |> Mat4.rotate rotation (vec3 0 0 1)
+                |> Mat4.scale (vec3 (getX size) (getY size) 1)
     in
     WebGL.entity
         texturedVertexShader
@@ -89,23 +86,17 @@ renderSprite x y texture camera =
 -- Render square in WebGL 2D context
 
 
-renderSquare : Float -> Float -> Mat4 -> Entity
-renderSquare x y camera =
+renderSquare : Position -> Size -> Float -> Camera -> Entity
+renderSquare position size rotation camera =
     let
-        translation =
-            Mat4.identity |> Mat4.translate3 x y 1
-
-        rotation =
-            Mat4.identity
-
-        scale =
-            Mat4.makeScale (vec3 50 50 1)
-
         transform =
-            Mat4.mul (Mat4.mul translation rotation) scale
+            Mat4.identity
+                |> Mat4.translate (vec3 (getX position) (getY position) 1)
+                |> Mat4.rotate rotation (vec3 0 0 1)
+                |> Mat4.scale (vec3 (getX size) (getY size) 1)
     in
     WebGL.entity
         vertexShader
         fragmentShader
-        mesh
+        (coloredMesh transform)
         { perspective = camera }

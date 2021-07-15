@@ -7,6 +7,7 @@ import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
 import Json.Decode exposing (Value)
 import Math.Matrix4 as Mat4 exposing (Mat4)
+import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Render exposing (renderSprite, renderSquare)
 import Shaders exposing (..)
@@ -103,7 +104,9 @@ view model =
                         , style "background-color" "black"
                         , style "margin" "auto"
                         ]
-                        [ renderSprite 50 50 texture orthographicCamera
+                        [ renderSprite (vec2 150 150) (vec2 50 50) 45 texture orthographicCamera
+                        , renderSprite (vec2 300 150) (vec2 50 50) 35 texture orthographicCamera
+                        , renderSquare (vec2 150 300) (vec2 50 50) 90 orthographicCamera
                         ]
 
 
