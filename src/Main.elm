@@ -7,7 +7,7 @@ import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
 import Json.Decode exposing (Value)
 import Math.Matrix4 as Mat4 exposing (Mat4)
-import Math.Vector2 as Vec2 exposing (Vec2, vec2)
+import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Render exposing (MeshBank, initMeshBank, renderSprite, renderSquare)
 import Shaders exposing (..)
@@ -146,10 +146,29 @@ view model =
                         , style "background-color" "black"
                         , style "margin" "auto"
                         ]
-                        [ renderSprite textureMesh spriteRenderingProperties texture orthographicCamera
-                        , renderSprite textureMesh defaultRenderingProperties texture orthographicCamera
-                        , renderSquare coloredMesh defaultRenderingProperties orthographicCamera
-                        ]
+                        (List.repeat 100 spriteRenderingProperties
+                            |> List.indexedMap (\i rp -> updatePosition i rp)
+                            |> List.indexedMap (\i rp -> updateAngle i rp)
+                            |> List.map (\rp -> renderSprite textureMesh rp texture orthographicCamera)
+                        )
+
+
+updatePosition : Int -> RenderingProperties -> RenderingProperties
+updatePosition index renderingProperties =
+    if modBy 2 index == 0 then
+        { renderingProperties | position = add renderingProperties.position (vec2 (20 * toFloat index) 0) }
+
+    else
+        { renderingProperties | position = add renderingProperties.position (vec2 0 (20 * toFloat index)) }
+
+
+updateAngle : Int -> RenderingProperties -> RenderingProperties
+updateAngle index renderingProperties =
+    if modBy 2 index == 0 then
+        { renderingProperties | angle = negate renderingProperties.angle }
+
+    else
+        renderingProperties
 
 
 orthographicCamera : Mat4
