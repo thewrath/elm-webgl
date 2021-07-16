@@ -77,21 +77,14 @@ textureMesh =
 -- @Todo use curry to enable modification of vertex and fragment shader
 
 
-renderSprite : Mesh TextureVertex -> Position -> Size -> Float -> Texture -> Camera -> Entity
-renderSprite mesh position size rotation texture camera =
-    let
-        transform =
-            Mat4.identity
-                |> Mat4.translate (vec3 (getX position) (getY position) 1)
-                |> Mat4.rotate rotation (vec3 0 0 1)
-                |> Mat4.scale (vec3 (getX size) (getY size) 1)
-    in
+renderSprite : Mesh TextureVertex -> RenderingProperties -> Texture -> Camera -> Entity
+renderSprite mesh renderingProperties texture camera =
     WebGL.entity
         texturedVertexShader
         texturedFragmentShader
         mesh
         { perspective = camera
-        , transform = transform
+        , transform = transformRenderingProperties renderingProperties
         , texture = texture
         }
 
@@ -100,19 +93,12 @@ renderSprite mesh position size rotation texture camera =
 -- Render square in WebGL 2D context
 
 
-renderSquare : Mesh ColoredVertex -> Position -> Size -> Float -> Camera -> Entity
-renderSquare mesh position size rotation camera =
-    let
-        transform =
-            Mat4.identity
-                |> Mat4.translate (vec3 (getX position) (getY position) 1)
-                |> Mat4.rotate rotation (vec3 0 0 1)
-                |> Mat4.scale (vec3 (getX size) (getY size) 1)
-    in
+renderSquare : Mesh ColoredVertex -> RenderingProperties -> Camera -> Entity
+renderSquare mesh renderingProperties camera =
     WebGL.entity
         vertexShader
         fragmentShader
         mesh
         { perspective = camera
-        , transform = transform
+        , transform = transformRenderingProperties renderingProperties
         }

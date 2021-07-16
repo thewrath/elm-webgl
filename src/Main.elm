@@ -91,7 +91,7 @@ updateSprite : Model -> Model
 updateSprite model =
     let
         sprite =
-            { position = model.sprite.position, angle = model.sprite.angle + 1 } |> Debug.log "sprite"
+            { position = model.sprite.position, angle = model.sprite.angle + 0.05 } |> Debug.log "sprite"
     in
     { model | sprite = sprite }
 
@@ -126,6 +126,18 @@ view model =
 
                         coloredMesh =
                             model.meshBank.coloredMesh
+
+                        defaultRenderingProperties =
+                            { position = vec2 50 50
+                            , size = vec2 50 50
+                            , angle = 10
+                            }
+
+                        spriteRenderingProperties =
+                            { position = model.sprite.position
+                            , size = vec2 50 50
+                            , angle = model.sprite.angle
+                            }
                     in
                     WebGL.toHtml
                         [ width 800
@@ -134,9 +146,9 @@ view model =
                         , style "background-color" "black"
                         , style "margin" "auto"
                         ]
-                        [ renderSprite textureMesh model.sprite.position (vec2 50 50) model.sprite.angle texture orthographicCamera
-                        , renderSprite textureMesh (vec2 300 150) (vec2 50 50) 35 texture orthographicCamera
-                        , renderSquare coloredMesh (vec2 150 300) (vec2 50 50) 90 orthographicCamera
+                        [ renderSprite textureMesh spriteRenderingProperties texture orthographicCamera
+                        , renderSprite textureMesh defaultRenderingProperties texture orthographicCamera
+                        , renderSquare coloredMesh defaultRenderingProperties orthographicCamera
                         ]
 
 
