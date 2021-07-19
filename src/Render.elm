@@ -8,6 +8,7 @@ import Shaders exposing (..)
 import Transform exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh, Shader)
+import WebGL.Settings exposing (colorMask)
 import WebGL.Texture as Texture exposing (Texture)
 
 
@@ -80,7 +81,8 @@ textureMesh =
 
 renderSprite : Mesh TextureVertex -> RenderingProperties -> Texture -> Camera -> Entity
 renderSprite mesh renderingProperties texture camera =
-    WebGL.entity
+    WebGL.entityWith
+        [ WebGL.Settings.sampleAlphaToCoverage ]
         texturedVertexShader
         texturedFragmentShader
         mesh

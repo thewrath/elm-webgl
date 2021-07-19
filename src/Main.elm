@@ -16,7 +16,7 @@ import RenderingProperties exposing (..)
 import Shaders exposing (..)
 import Task exposing (..)
 import Type exposing (..)
-import WebGL exposing (Entity, Mesh, Shader)
+import WebGL exposing (..)
 import WebGL.Texture as Texture exposing (Error, Options, Texture, linear, nearest, repeat)
 
 
@@ -137,7 +137,8 @@ view model =
             text "Loading ..."
 
         Just textures ->
-            WebGL.toHtml
+            WebGL.toHtmlWith
+                [ WebGL.alpha True, WebGL.antialias ]
                 [ width 800
                 , height 800
                 , style "display" "block"

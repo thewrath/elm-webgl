@@ -86,7 +86,7 @@ view model =
             let
                 spriteRenderingProperties =
                     RenderingProperties.empty
-                        |> RenderingProperties.withPosition (vec2 100 100)
+                        |> RenderingProperties.withPosition (vec2 50 50)
                         |> RenderingProperties.withSize (vec2 32 32)
                         |> RenderingProperties.withAngle model.angle
             in
