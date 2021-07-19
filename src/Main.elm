@@ -14,7 +14,7 @@ import Shaders exposing (..)
 import Task exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh, Shader)
-import WebGL.Texture as Texture exposing (Error, Texture)
+import WebGL.Texture as Texture exposing (Error, Options, Texture, linear, nearest, repeat)
 
 
 
@@ -61,13 +61,21 @@ main =
 init : ( Model, Cmd Action )
 init =
     let
+        textureOptions =
+            { magnify = nearest
+            , minify = nearest
+            , horizontalWrap = repeat
+            , verticalWrap = repeat
+            , flipY = True
+            }
+
         textures =
-            [ "../textures/thwomp-face.jpg", "../textures/thwomp-side.jpg" ]
+            [ "../textures/shmup/shmup/color/alien1.png", "../textures/thwomp-side.jpg" ]
 
         sprite =
             { position = vec2 150 150, angle = 0 }
     in
-    ( { textures = Nothing, meshBank = initMeshBank, sprite = sprite }, Cmd.batch [ loadTextures textures ] )
+    ( { textures = Nothing, meshBank = initMeshBank, sprite = sprite }, Cmd.batch [ loadTextures textureOptions textures ] )
 
 
 
@@ -129,7 +137,7 @@ view model =
 
                         spriteRenderingProperties position =
                             { position = position
-                            , size = vec2 50 50
+                            , size = vec2 32 32
                             , angle = model.sprite.angle
                             }
                     in
@@ -159,10 +167,10 @@ orthographicCamera =
 -- @Todo move in submodule
 
 
-loadTextures : List String -> Cmd Action
-loadTextures textureNames =
+loadTextures : Options -> List String -> Cmd Action
+loadTextures options textureNames =
     textureNames
-        |> List.map Texture.load
+        |> List.map (Texture.loadWith options)
         -- turn textures into list of "loading texture task"
         |> Task.sequence
         -- create a new sequence task (task compose of a list of tasks)
