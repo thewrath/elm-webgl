@@ -1,15 +1,16 @@
 module Main exposing (..)
 
 import Browser
-import Browser.Events exposing (onAnimationFrameDelta)
+import Browser.Events exposing (onAnimationFrameDelta, onKeyDown)
 import Debug
 import Enemy exposing (..)
 import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
-import Json.Decode exposing (Value)
+import Json.Decode as Decode exposing (Value)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
+import Player exposing (..)
 import Render exposing (..)
 import RenderingProperties exposing (..)
 import Shaders exposing (..)
@@ -27,6 +28,7 @@ type alias Model =
     { textures : Maybe (List Texture)
     , meshBank : MeshBank
     , enemyModel : Enemy.Model
+    , playerModel : Player.Model
     }
 
 
@@ -38,14 +40,15 @@ type Action
     = TexturesError Error
     | TexturesLoaded (List Texture)
     | AnimationFrame Float
+    | OnKeyDown Player.Direction
 
 
 main : Program Value Model Action
 main =
     Browser.element
-        { init = \_ -> init
+        { init = init
         , view = view
-        , subscriptions = \_ -> onAnimationFrameDelta (\f -> AnimationFrame f)
+        , subscriptions = subscriptions
         , update = update
         }
 
@@ -54,8 +57,8 @@ main =
 -- Initialize application (fetch textures, ...)
 
 
-init : ( Model, Cmd Action )
-init =
+init : flags -> ( Model, Cmd Action )
+init _ =
     let
         meshBank =
             initMeshBank
@@ -71,14 +74,29 @@ init =
         textures =
             [ "../textures/shmup/shmup/color/alien1.png", "../textures/thwomp-side.jpg" ]
 
+        -- @Todo : instead of building the records here it would be better to use the factory pattern in the Player and Enemy modules
         enemyModel =
             { mesh = initMeshBank.textureMesh
             , angle = 0
             , texture = Nothing
             , camera = orthographicCamera
             }
+
+        playerModel =
+            { mesh = initMeshBank.textureMesh
+            , angle = 0
+            , texture = Nothing
+            , camera = orthographicCamera
+            , direction = Player.Up
+            }
     in
-    ( { textures = Nothing, meshBank = meshBank, enemyModel = enemyModel }, Cmd.batch [ loadTextures textureOptions textures ] )
+    ( { textures = Nothing
+      , meshBank = meshBank
+      , enemyModel = enemyModel
+      , playerModel = playerModel
+      }
+    , Cmd.batch [ loadTextures textureOptions textures ]
+    )
 
 
 
@@ -89,29 +107,22 @@ update : Action -> Model -> ( Model, Cmd Action )
 update action model =
     case action of
         TexturesLoaded textures ->
-            let
-                firstTexture =
-                    List.head textures
-
-                -- @Todo create helper function to update enemy texture
-                enemyModel =
-                    model.enemyModel
-
-                newEnemyModel =
-                    case firstTexture of
-                        Nothing ->
-                            model.enemyModel
-
-                        Just texture ->
-                            { enemyModel | texture = firstTexture }
-            in
-            ( { model | textures = Just textures, enemyModel = newEnemyModel }, Cmd.none )
+            ( { model
+                | textures = Just textures
+                , enemyModel = Enemy.withTextures textures model.enemyModel
+                , playerModel = Player.withTextures textures model.playerModel
+              }
+            , Cmd.none
+            )
 
         TexturesError err ->
             ( model, Cmd.none )
 
         AnimationFrame delta ->
             ( { model | enemyModel = Enemy.update model.enemyModel }, Cmd.none )
+
+        OnKeyDown direction ->
+            ( { model | playerModel = Player.changeDirection direction model.playerModel }, Cmd.none )
 
 
 
@@ -129,11 +140,19 @@ view model =
             WebGL.toHtml
                 [ width 800
                 , height 800
-                , style "displaMeshy" "block"
+                , style "display" "block"
                 , style "background-color" "black"
                 , style "margin" "auto"
                 ]
-                (Enemy.view model.enemyModel)
+                (List.concat [ Enemy.view model.enemyModel, Player.view model.playerModel ])
+
+
+subscriptions : Model -> Sub Action
+subscriptions model =
+    Sub.batch
+        [ onAnimationFrameDelta (\f -> AnimationFrame f)
+        , onKeyDown (Decode.map OnKeyDown Player.keyDecoder)
+        ]
 
 
 orthographicCamera : Mat4

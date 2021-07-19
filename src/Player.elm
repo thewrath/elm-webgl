@@ -1,8 +1,7 @@
--- @Todo : Share code with Player module
+module Player exposing (..)
 
-
-module Enemy exposing (..)
-
+import Debug exposing (..)
+import Json.Decode as Decode
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Render exposing (..)
@@ -12,17 +11,26 @@ import WebGL exposing (Entity, Mesh, Shader)
 import WebGL.Texture as Texture exposing (Texture)
 
 
+type Direction
+    = Up
+    | Right
+    | Down
+    | Left
+    | Other
+
+
 type alias Model =
     { mesh : Mesh TextureVertex
     , angle : Float
     , texture : Maybe Texture
     , camera : Mat4
+    , direction : Direction
     }
 
 
 init : Mesh TextureVertex -> Mat4 -> Model
 init mesh camera =
-    { mesh = mesh, angle = 0, texture = Nothing, camera = camera }
+    { mesh = mesh, angle = 0, texture = Nothing, camera = camera, direction = Up }
 
 
 withTextures : List Texture -> Model -> Model
@@ -33,6 +41,34 @@ withTextures textures model =
 
         Just texture ->
             { model | texture = Just texture }
+
+
+keyDecoder : Decode.Decoder Direction
+keyDecoder =
+    let
+        toDirection string =
+            case string of
+                "ArrowUp" ->
+                    Up
+
+                "ArrowRight" ->
+                    Right
+
+                "ArrowDown" ->
+                    Down
+
+                "ArrowLeft" ->
+                    Left
+
+                _ ->
+                    Other
+    in
+    Decode.map toDirection (Decode.field "key" Decode.string)
+
+
+changeDirection : Direction -> Model -> Model
+changeDirection direction model =
+    { model | direction = Debug.log "player direction :" direction }
 
 
 update : Model -> Model
@@ -48,15 +84,11 @@ view model =
 
         Just texture ->
             let
-                spriteRenderingProperties position =
+                spriteRenderingProperties =
                     RenderingProperties.empty
-                        |> RenderingProperties.withPosition position
+                        |> RenderingProperties.withPosition (vec2 100 100)
                         |> RenderingProperties.withSize (vec2 32 32)
                         |> RenderingProperties.withAngle model.angle
             in
-            [ spriteRenderingProperties (vec2 50 50)
-            , spriteRenderingProperties (vec2 50 750)
-            , spriteRenderingProperties (vec2 750 50)
-            , spriteRenderingProperties (vec2 750 750)
+            [ renderSprite model.mesh spriteRenderingProperties texture model.camera
             ]
-                |> List.map (\rp -> renderSprite model.mesh rp texture model.camera)
