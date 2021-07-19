@@ -74,7 +74,6 @@ textureMesh =
 
 
 -- Render sprite in WebGL 2D context
--- @Todo use curry to enable modification of vertex and fragment shader
 
 
 renderSprite : Mesh TextureVertex -> RenderingProperties -> Texture -> Camera -> Entity

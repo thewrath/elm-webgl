@@ -127,14 +127,8 @@ view model =
                         coloredMesh =
                             model.meshBank.coloredMesh
 
-                        defaultRenderingProperties =
-                            { position = vec2 50 50
-                            , size = vec2 50 50
-                            , angle = 10
-                            }
-
-                        spriteRenderingProperties =
-                            { position = model.sprite.position
+                        spriteRenderingProperties position =
+                            { position = position
                             , size = vec2 50 50
                             , angle = model.sprite.angle
                             }
@@ -146,29 +140,13 @@ view model =
                         , style "background-color" "black"
                         , style "margin" "auto"
                         ]
-                        (List.repeat 100 spriteRenderingProperties
-                            |> List.indexedMap (\i rp -> updatePosition i rp)
-                            |> List.indexedMap (\i rp -> updateAngle i rp)
+                        ([ spriteRenderingProperties (vec2 50 50)
+                         , spriteRenderingProperties (vec2 50 750)
+                         , spriteRenderingProperties (vec2 750 50)
+                         , spriteRenderingProperties (vec2 750 750)
+                         ]
                             |> List.map (\rp -> renderSprite textureMesh rp texture orthographicCamera)
                         )
-
-
-updatePosition : Int -> RenderingProperties -> RenderingProperties
-updatePosition index renderingProperties =
-    if modBy 2 index == 0 then
-        { renderingProperties | position = add renderingProperties.position (vec2 (20 * toFloat index) 0) }
-
-    else
-        { renderingProperties | position = add renderingProperties.position (vec2 0 (20 * toFloat index)) }
-
-
-updateAngle : Int -> RenderingProperties -> RenderingProperties
-updateAngle index renderingProperties =
-    if modBy 2 index == 0 then
-        { renderingProperties | angle = negate renderingProperties.angle }
-
-    else
-        renderingProperties
 
 
 orthographicCamera : Mat4
