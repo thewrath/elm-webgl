@@ -17,13 +17,6 @@ type alias TextureVertex =
     }
 
 
-type alias RenderingProperties =
-    { position : Position
-    , size : Size
-    , angle : Float
-    }
-
-
 type alias Position =
     Vec2
 

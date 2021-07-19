@@ -35,7 +35,7 @@ transformVertex transformMat vertex =
 -- Turn rendering properties into transformation matrix that can be used in shader.
 
 
-transformRenderingProperties : RenderingProperties -> Mat4
+transformRenderingProperties : { position : Vec2, size : Vec2, angle : Float } -> Mat4
 transformRenderingProperties renderingProperties =
     Mat4.identity
         |> Mat4.translate (vec3 (getX renderingProperties.position) (getY renderingProperties.position) 1)

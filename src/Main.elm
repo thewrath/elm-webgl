@@ -3,13 +3,15 @@ module Main exposing (..)
 import Browser
 import Browser.Events exposing (onAnimationFrameDelta)
 import Debug
+import Enemy exposing (..)
 import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
 import Json.Decode exposing (Value)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Render exposing (MeshBank, initMeshBank, renderSprite, renderSquare)
+import Render exposing (..)
+import RenderingProperties exposing (..)
 import Shaders exposing (..)
 import Task exposing (..)
 import Type exposing (..)
@@ -21,16 +23,10 @@ import WebGL.Texture as Texture exposing (Error, Options, Texture, linear, neare
 -- Application Model (textures)
 
 
-type alias Sprite =
-    { position : Vec2
-    , angle : Float
-    }
-
-
 type alias Model =
     { textures : Maybe (List Texture)
     , meshBank : MeshBank
-    , sprite : Sprite
+    , enemyModel : Enemy.Model
     }
 
 
@@ -61,6 +57,9 @@ main =
 init : ( Model, Cmd Action )
 init =
     let
+        meshBank =
+            initMeshBank
+
         textureOptions =
             { magnify = nearest
             , minify = nearest
@@ -72,10 +71,14 @@ init =
         textures =
             [ "../textures/shmup/shmup/color/alien1.png", "../textures/thwomp-side.jpg" ]
 
-        sprite =
-            { position = vec2 150 150, angle = 0 }
+        enemyModel =
+            { mesh = initMeshBank.textureMesh
+            , angle = 0
+            , texture = Nothing
+            , camera = orthographicCamera
+            }
     in
-    ( { textures = Nothing, meshBank = initMeshBank, sprite = sprite }, Cmd.batch [ loadTextures textureOptions textures ] )
+    ( { textures = Nothing, meshBank = meshBank, enemyModel = enemyModel }, Cmd.batch [ loadTextures textureOptions textures ] )
 
 
 
@@ -86,22 +89,29 @@ update : Action -> Model -> ( Model, Cmd Action )
 update action model =
     case action of
         TexturesLoaded textures ->
-            ( { model | textures = Just textures }, Cmd.none )
+            let
+                firstTexture =
+                    List.head textures
+
+                -- @Todo create helper function to update enemy texture
+                enemyModel =
+                    model.enemyModel
+
+                newEnemyModel =
+                    case firstTexture of
+                        Nothing ->
+                            model.enemyModel
+
+                        Just texture ->
+                            { enemyModel | texture = firstTexture }
+            in
+            ( { model | textures = Just textures, enemyModel = newEnemyModel }, Cmd.none )
 
         TexturesError err ->
             ( model, Cmd.none )
 
         AnimationFrame delta ->
-            ( updateSprite model, Cmd.none )
-
-
-updateSprite : Model -> Model
-updateSprite model =
-    let
-        sprite =
-            { position = model.sprite.position, angle = model.sprite.angle + 0.05 } |> Debug.log "sprite"
-    in
-    { model | sprite = sprite }
+            ( { model | enemyModel = Enemy.update model.enemyModel }, Cmd.none )
 
 
 
@@ -116,45 +126,14 @@ view model =
             text "Loading ..."
 
         Just textures ->
-            let
-                firstTexture =
-                    List.head textures
-            in
-            case firstTexture of
-                Nothing ->
-                    text "Texture loading error"
-
-                Just texture ->
-                    let
-                        _ =
-                            Debug.log "size :" (Texture.size texture)
-
-                        textureMesh =
-                            model.meshBank.textureMesh
-
-                        coloredMesh =
-                            model.meshBank.coloredMesh
-
-                        spriteRenderingProperties position =
-                            { position = position
-                            , size = vec2 32 32
-                            , angle = model.sprite.angle
-                            }
-                    in
-                    WebGL.toHtml
-                        [ width 800
-                        , height 800
-                        , style "displaMeshy" "block"
-                        , style "background-color" "black"
-                        , style "margin" "auto"
-                        ]
-                        ([ spriteRenderingProperties (vec2 50 50)
-                         , spriteRenderingProperties (vec2 50 750)
-                         , spriteRenderingProperties (vec2 750 50)
-                         , spriteRenderingProperties (vec2 750 750)
-                         ]
-                            |> List.map (\rp -> renderSprite textureMesh rp texture orthographicCamera)
-                        )
+            WebGL.toHtml
+                [ width 800
+                , height 800
+                , style "displaMeshy" "block"
+                , style "background-color" "black"
+                , style "margin" "auto"
+                ]
+                (Enemy.view model.enemyModel)
 
 
 orthographicCamera : Mat4

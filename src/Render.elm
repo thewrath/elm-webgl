@@ -1,8 +1,9 @@
-module Render exposing (MeshBank, initMeshBank, renderSprite, renderSquare)
+module Render exposing (..)
 
 import Math.Matrix4 as Mat4 exposing (Mat4, identity, transform, translate3)
 import Math.Vector2 as Vec2 exposing (Vec2, getX, getY, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
+import RenderingProperties exposing (..)
 import Shaders exposing (..)
 import Transform exposing (..)
 import Type exposing (..)
@@ -73,6 +74,7 @@ textureMesh =
 
 
 
+-- Render
 -- Render sprite in WebGL 2D context
 
 
