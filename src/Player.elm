@@ -7,9 +7,10 @@ import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Render exposing (..)
 import RenderingProperties exposing (..)
+import Texture exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh, Shader)
-import WebGL.Texture as Texture exposing (Texture)
+import WebGL.Texture exposing (Texture)
 
 
 type alias Model =
@@ -17,7 +18,7 @@ type alias Model =
     , angle : Float
     , position : Position
     , speed : Float -- Speed in all direction
-    , texture : Maybe Texture
+    , texture : Maybe WebGL.Texture.Texture
     , camera : Mat4
     , keyStates : Dict String Bool
     }
@@ -39,7 +40,7 @@ init mesh camera =
 -- @todo replace with texture container type
 
 
-withTextures : Dict String Texture -> Model -> Model
+withTextures : TextureContainer -> Model -> Model
 withTextures textures model =
     case Dict.get "Player" textures of
         Nothing ->

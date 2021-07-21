@@ -8,15 +8,16 @@ import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Render exposing (..)
 import RenderingProperties exposing (..)
+import Texture exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh, Shader)
-import WebGL.Texture as Texture exposing (Texture)
+import WebGL.Texture exposing (Texture)
 
 
 type alias Model =
     { mesh : Mesh TextureVertex
     , angle : Float
-    , texture : Maybe Texture
+    , texture : Maybe WebGL.Texture.Texture
     , camera : Mat4
     }
 
@@ -26,7 +27,7 @@ init mesh camera =
     { mesh = mesh, angle = 0, texture = Nothing, camera = camera }
 
 
-withTextures : Dict String Texture -> Model -> Model
+withTextures : TextureContainer -> Model -> Model
 withTextures textures model =
     case Dict.get "Alien" textures of
         Nothing ->

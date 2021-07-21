@@ -17,17 +17,14 @@ import Render exposing (..)
 import RenderingProperties exposing (..)
 import Shaders exposing (..)
 import Task exposing (..)
+import Texture exposing (TextureContainer, loadTextures)
 import Type exposing (..)
 import WebGL exposing (..)
-import WebGL.Texture as Texture exposing (Error, Options, Texture, linear, nearest, repeat)
+import WebGL.Texture exposing (Error, Options, linear, nearest, repeat)
 
 
 
 -- Application Model (textures)
-
-
-type alias TextureContainer =
-    Dict String Texture
 
 
 type alias Model =
@@ -88,7 +85,7 @@ init _ =
       , playerModel = Player.init initMeshBank.textureMesh orthographicCamera |> Player.withPosition (vec2 400 400)
       }
     , Cmd.batch
-        [ loadTextures textureOptions textures
+        [ loadTextures textureOptions textures TexturesLoaded TexturesError
         , Task.perform GetViewport getViewport
         ]
     )
@@ -178,28 +175,3 @@ keycodeDecoder action =
 orthographicCamera : Mat4
 orthographicCamera =
     Mat4.makeOrtho2D 0 800 0 800
-
-
-
--- Tell elm runtime to perform tasks that load textures
--- @Todo move in submodule
-
-
-loadTextures : Options -> Dict String String -> Cmd Action
-loadTextures options texturesList =
-    Dict.toList texturesList
-        |> List.map (\( name, path ) -> Texture.loadWith options path |> Task.map (\texture -> ( name, texture )))
-        -- turn textures into list of "loading texture task"
-        |> Task.sequence
-        -- create a new sequence task (task compose of a list of tasks)
-        |> Task.andThen Task.succeed
-        -- Turn task result into message that can be handle in update function
-        |> Task.attempt
-            (\result ->
-                case result of
-                    Err error ->
-                        TexturesError error
-
-                    Ok textures ->
-                        TexturesLoaded (Dict.fromList textures)
-            )
