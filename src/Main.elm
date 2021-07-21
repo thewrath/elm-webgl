@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Browser
+import Browser.Dom exposing (Viewport, getViewport)
 import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp)
 import Debug
 import Enemy exposing (..)
@@ -40,6 +41,7 @@ type Action
     = TexturesError Error
     | TexturesLoaded (List Texture)
     | AnimationFrame Float
+    | GetViewport Viewport
     | OnKeyDown String
     | OnKeyUp String
 
@@ -74,29 +76,16 @@ init _ =
 
         textures =
             [ "../textures/shmup/shmup/color/alien1.png", "../textures/thwomp-side.jpg" ]
-
-        -- @Todo : instead of building the records here it would be better to use the factory pattern in the Player and Enemy modules
-        enemyModel =
-            { mesh = initMeshBank.textureMesh
-            , angle = 0
-            , texture = Nothing
-            , camera = orthographicCamera
-            }
-
-        playerModel =
-            { mesh = initMeshBank.textureMesh
-            , angle = 0
-            , texture = Nothing
-            , camera = orthographicCamera
-            , direction = Player.Up
-            }
     in
     ( { textures = Nothing
       , meshBank = meshBank
-      , enemyModel = enemyModel
-      , playerModel = playerModel
+      , enemyModel = Enemy.init initMeshBank.textureMesh orthographicCamera
+      , playerModel = Player.init initMeshBank.textureMesh orthographicCamera |> Player.withPosition (vec2 400 400)
       }
-    , Cmd.batch [ loadTextures textureOptions textures ]
+    , Cmd.batch
+        [ loadTextures textureOptions textures
+        , Task.perform GetViewport getViewport
+        ]
     )
 
 
@@ -120,7 +109,21 @@ update action model =
             ( model, Cmd.none )
 
         AnimationFrame delta ->
-            ( { model | enemyModel = Enemy.update model.enemyModel }, Cmd.none )
+            let
+                newModel =
+                    { model
+                        | enemyModel = Enemy.update model.enemyModel
+                        , playerModel = Player.update model.playerModel
+                    }
+            in
+            ( newModel, Cmd.none )
+
+        GetViewport { viewport } ->
+            let
+                _ =
+                    Debug.log "viewport :" viewport
+            in
+            ( model, Cmd.none )
 
         OnKeyDown keycode ->
             ( { model | playerModel = Player.handleKeyDown model.playerModel keycode }, Cmd.none )
