@@ -4,6 +4,7 @@ import Browser
 import Browser.Dom exposing (Viewport, getViewport)
 import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp)
 import Debug
+import Dict exposing (Dict)
 import Enemy exposing (..)
 import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
@@ -25,8 +26,12 @@ import WebGL.Texture as Texture exposing (Error, Options, Texture, linear, neare
 -- Application Model (textures)
 
 
+type alias TextureContainer =
+    Dict String Texture
+
+
 type alias Model =
-    { textures : Maybe (List Texture)
+    { textures : Maybe TextureContainer
     , meshBank : MeshBank
     , enemyModel : Enemy.Model
     , playerModel : Player.Model
@@ -39,7 +44,7 @@ type alias Model =
 
 type Action
     = TexturesError Error
-    | TexturesLoaded (List Texture)
+    | TexturesLoaded TextureContainer
     | AnimationFrame Float
     | GetViewport Viewport
     | OnKeyDown String
@@ -75,7 +80,7 @@ init _ =
             }
 
         textures =
-            [ "../textures/shmup/shmup/color/alien1.png", "../textures/thwomp-side.jpg" ]
+            Dict.fromList [ ( "Alien", "../textures/shmup/shmup/color/alien1.png" ), ( "Player", "../textures/shmup/shmup/color/alien15.png" ) ]
     in
     ( { textures = Nothing
       , meshBank = meshBank
@@ -106,7 +111,8 @@ update action model =
             )
 
         TexturesError err ->
-            ( model, Cmd.none )
+            Debug.log "texture loading error : " err
+                |> (\_ -> ( model, Cmd.none ))
 
         AnimationFrame delta ->
             let
@@ -179,10 +185,10 @@ orthographicCamera =
 -- @Todo move in submodule
 
 
-loadTextures : Options -> List String -> Cmd Action
-loadTextures options textureNames =
-    textureNames
-        |> List.map (Texture.loadWith options)
+loadTextures : Options -> Dict String String -> Cmd Action
+loadTextures options texturesList =
+    Dict.toList texturesList
+        |> List.map (\( name, path ) -> Texture.loadWith options path |> Task.map (\texture -> ( name, texture )))
         -- turn textures into list of "loading texture task"
         |> Task.sequence
         -- create a new sequence task (task compose of a list of tasks)
@@ -195,5 +201,5 @@ loadTextures options textureNames =
                         TexturesError error
 
                     Ok textures ->
-                        TexturesLoaded textures
+                        TexturesLoaded (Dict.fromList textures)
             )

@@ -3,6 +3,7 @@
 
 module Enemy exposing (..)
 
+import Dict exposing (Dict)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Render exposing (..)
@@ -25,9 +26,9 @@ init mesh camera =
     { mesh = mesh, angle = 0, texture = Nothing, camera = camera }
 
 
-withTextures : List Texture -> Model -> Model
+withTextures : Dict String Texture -> Model -> Model
 withTextures textures model =
-    case List.head textures of
+    case Dict.get "Alien" textures of
         Nothing ->
             model
 

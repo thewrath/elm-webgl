@@ -35,9 +35,13 @@ init mesh camera =
     }
 
 
-withTextures : List Texture -> Model -> Model
+
+-- @todo replace with texture container type
+
+
+withTextures : Dict String Texture -> Model -> Model
 withTextures textures model =
-    case List.head textures of
+    case Dict.get "Player" textures of
         Nothing ->
             model
 

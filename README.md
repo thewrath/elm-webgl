@@ -6,9 +6,11 @@ It uses :
 - Elm programming language
 - WebGL as rasterization API (for rendering)
 - Audio ?
+- Text rendering ?
 - Tmx loader ?
 
 Very few Elm libraries have been added (except elm-webgl) to show that Elm contains everything that is needed for GD.
 
 ## Todo 
+- load texture into Dict for easier access to a specific texture
 - texture region to load spritesheet instead of single sprite
