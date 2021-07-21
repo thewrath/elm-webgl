@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Browser.Events exposing (onAnimationFrameDelta, onKeyDown)
+import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp)
 import Debug
 import Enemy exposing (..)
 import Html exposing (Html, text)
@@ -40,7 +40,8 @@ type Action
     = TexturesError Error
     | TexturesLoaded (List Texture)
     | AnimationFrame Float
-    | OnKeyDown Player.Direction
+    | OnKeyDown String
+    | OnKeyUp String
 
 
 main : Program Value Model Action
@@ -121,8 +122,11 @@ update action model =
         AnimationFrame delta ->
             ( { model | enemyModel = Enemy.update model.enemyModel }, Cmd.none )
 
-        OnKeyDown direction ->
-            ( { model | playerModel = Player.changeDirection direction model.playerModel }, Cmd.none )
+        OnKeyDown keycode ->
+            ( { model | playerModel = Player.handleKeyDown model.playerModel keycode }, Cmd.none )
+
+        OnKeyUp keycode ->
+            ( { model | playerModel = Player.handleKeyUp model.playerModel keycode }, Cmd.none )
 
 
 
@@ -152,8 +156,14 @@ subscriptions : Model -> Sub Action
 subscriptions model =
     Sub.batch
         [ onAnimationFrameDelta (\f -> AnimationFrame f)
-        , onKeyDown (Decode.map OnKeyDown Player.keyDecoder)
+        , onKeyDown (keycodeDecoder OnKeyDown)
+        , onKeyUp (keycodeDecoder OnKeyUp)
         ]
+
+
+keycodeDecoder : (String -> Action) -> Decode.Decoder Action
+keycodeDecoder action =
+    Decode.map action (Decode.field "key" Decode.string)
 
 
 orthographicCamera : Mat4

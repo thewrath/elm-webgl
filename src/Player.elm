@@ -43,32 +43,39 @@ withTextures textures model =
             { model | texture = Just texture }
 
 
-keyDecoder : Decode.Decoder Direction
-keyDecoder =
-    let
-        toDirection string =
-            case string of
-                "ArrowUp" ->
-                    Up
+keyCodeToDirection : String -> Direction
+keyCodeToDirection keycode =
+    case keycode of
+        "ArrowUp" ->
+            Up
 
-                "ArrowRight" ->
-                    Right
+        "ArrowRight" ->
+            Right
 
-                "ArrowDown" ->
-                    Down
+        "ArrowDown" ->
+            Down
 
-                "ArrowLeft" ->
-                    Left
+        "ArrowLeft" ->
+            Left
 
-                _ ->
-                    Other
-    in
-    Decode.map toDirection (Decode.field "key" Decode.string)
+        _ ->
+            Other
 
 
-changeDirection : Direction -> Model -> Model
-changeDirection direction model =
+changeDirection : Model -> Direction -> Model
+changeDirection model direction =
     { model | direction = Debug.log "player direction :" direction }
+
+
+handleKeyDown : Model -> String -> Model
+handleKeyDown model keycode =
+    keyCodeToDirection keycode
+        |> changeDirection model
+
+
+handleKeyUp : Model -> String -> Model
+handleKeyUp model _ =
+    model
 
 
 update : Model -> Model
