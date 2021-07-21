@@ -8,7 +8,7 @@ It uses :
 - Audio ?
 - Tmx loader ?
 
-Very few Elm libraries have been added (except elm-webgl) to show that Elm contains everything that is "out of stock" for this type of development.
+Very few Elm libraries have been added (except elm-webgl) to show that Elm contains everything that is needed for GD.
 
 ## Todo 
 - texture region to load spritesheet instead of single sprite
