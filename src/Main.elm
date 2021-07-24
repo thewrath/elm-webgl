@@ -6,6 +6,7 @@ import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp)
 import Debug
 import Dict exposing (Dict)
 import Enemy exposing (..)
+import Entity exposing (..)
 import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
 import Json.Decode as Decode exposing (Value)
@@ -101,8 +102,8 @@ update action model =
         TexturesLoaded textures ->
             ( { model
                 | textures = Just textures
-                , enemyModel = Enemy.withTextures textures model.enemyModel
-                , playerModel = Player.withTextures textures model.playerModel
+                , enemyModel = Entity.withTexture "Alien" textures model.enemyModel
+                , playerModel = Player.withTexture "Player" textures model.playerModel
               }
             , Cmd.none
             )
@@ -155,7 +156,7 @@ view model =
                 , style "background-color" "black"
                 , style "margin" "auto"
                 ]
-                (List.concat [ Enemy.view model.enemyModel, Player.view model.playerModel ])
+                (List.concat [ Entity.view (Enemy.toEntity model.enemyModel), Entity.view (Player.toEntity model.playerModel) ])
 
 
 subscriptions : Model -> Sub Action

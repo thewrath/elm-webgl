@@ -4,6 +4,7 @@
 module Enemy exposing (..)
 
 import Dict exposing (Dict)
+import Entity exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Render exposing (..)
@@ -16,49 +17,37 @@ import WebGL.Texture exposing (Texture)
 
 type alias Model =
     { mesh : Mesh TextureVertex
-    , angle : Float
     , texture : Maybe WebGL.Texture.Texture
     , camera : Mat4
+    , renderingProperties : RenderingProperties
     }
 
 
 init : Mesh TextureVertex -> Mat4 -> Model
 init mesh camera =
-    { mesh = mesh, angle = 0, texture = Nothing, camera = camera }
+    let
+        renderingProperties =
+            RenderingProperties.empty
+                |> RenderingProperties.withPosition (vec2 0 0)
+                |> RenderingProperties.withSize (vec2 32 32)
+                |> RenderingProperties.withAngle 0
+    in
+    { mesh = mesh
+    , texture = Nothing
+    , camera = camera
+    , renderingProperties = renderingProperties
+    }
 
 
-withTextures : TextureContainer -> Model -> Model
-withTextures textures model =
-    case Dict.get "Alien" textures of
-        Nothing ->
-            model
-
-        Just texture ->
-            { model | texture = Just texture }
+toEntity : Model -> Entity.BaseModel
+toEntity model =
+    { texture = model.texture
+    , mesh = model.mesh
+    , camera = model.camera
+    , renderingProperties = model.renderingProperties
+    }
 
 
 update : Model -> Model
 update model =
-    { model | angle = model.angle + 0.05 }
-
-
-view : Model -> List WebGL.Entity
-view model =
-    case model.texture of
-        Nothing ->
-            []
-
-        Just texture ->
-            let
-                spriteRenderingProperties position =
-                    RenderingProperties.empty
-                        |> RenderingProperties.withPosition position
-                        |> RenderingProperties.withSize (vec2 32 32)
-                        |> RenderingProperties.withAngle model.angle
-            in
-            [ spriteRenderingProperties (vec2 50 50)
-            , spriteRenderingProperties (vec2 50 750)
-            , spriteRenderingProperties (vec2 750 50)
-            , spriteRenderingProperties (vec2 750 750)
-            ]
-                |> List.map (\rp -> renderSprite model.mesh rp texture model.camera)
+    { model | renderingProperties = RenderingProperties.withAngle (model.renderingProperties.angle + 0.05) model.renderingProperties }
