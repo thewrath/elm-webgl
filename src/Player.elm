@@ -1,5 +1,6 @@
 module Player exposing (..)
 
+import Bullet exposing (..)
 import Debug exposing (..)
 import Dict exposing (Dict)
 import Entity exposing (..)
@@ -20,6 +21,8 @@ type alias Model =
     , camera : Mat4
     , keyStates : Dict String Bool
     , renderingProperties : RenderingProperties
+    , bullets : List Bullet.Model
+    , bulletPrototype : Bullet.Model
     }
 
 
@@ -38,16 +41,29 @@ init mesh camera =
     , camera = camera
     , keyStates = Dict.empty
     , renderingProperties = renderingProperties
+    , bullets = []
+    , bulletPrototype = Bullet.init mesh camera
     }
 
 
-toEntity : Model -> Entity.BaseModel
+onTexturesLoaded : TextureContainer -> Model -> Model
+onTexturesLoaded textureContainer ({ bulletPrototype } as model) =
+    { model | bulletPrototype = Bullet.withTexture "Bullet" textureContainer bulletPrototype }
+        |> withTexture "Player" textureContainer
+
+
+toEntity : Model -> Entity.Model
 toEntity model =
     { texture = model.texture
     , mesh = model.mesh
     , camera = model.camera
     , renderingProperties = model.renderingProperties
     }
+
+
+withTexture : String -> TextureContainer -> Model -> Model
+withTexture textureName textures model =
+    { model | texture = Dict.get textureName textures }
 
 
 withPosition : Position -> Model -> Model
@@ -67,7 +83,9 @@ handleKeyUp model keycode =
 
 update : Model -> Model
 update model =
-    model |> move
+    model
+        |> move
+        |> shoot
 
 
 
@@ -104,3 +122,18 @@ move model =
         |> Vec2.scale model.speed
         -- Add correction of higher speed in diagonal direction
         |> applyVelocity
+
+
+
+-- Shoot bullet on space down
+
+
+shoot : Model -> Model
+shoot model =
+    -- check if space is down
+    if Maybe.withDefault False (Dict.get " " model.keyStates) then
+        model
+        -- @Todo : clone bulletPrototype and add new instance in bullets list
+
+    else
+        model

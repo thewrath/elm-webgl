@@ -97,12 +97,16 @@ init _ =
 
 
 update : Action -> Model -> ( Model, Cmd Action )
-update action model =
+update action ({ enemyModel, playerModel } as model) =
     case action of
         TexturesLoaded textures ->
+            let
+                newEnemyModel =
+                    { enemyModel | entity = Entity.withTexture "Alien" textures enemyModel.entity }
+            in
             ( { model
                 | textures = Just textures
-                , enemyModel = Entity.withTexture "Alien" textures model.enemyModel
+                , enemyModel = newEnemyModel
                 , playerModel = Player.withTexture "Player" textures model.playerModel
               }
             , Cmd.none
@@ -116,8 +120,8 @@ update action model =
             let
                 newModel =
                     { model
-                        | enemyModel = Enemy.update model.enemyModel
-                        , playerModel = Player.update model.playerModel
+                        | enemyModel = Enemy.update enemyModel
+                        , playerModel = Player.update playerModel
                     }
             in
             ( newModel, Cmd.none )
@@ -130,10 +134,10 @@ update action model =
             ( model, Cmd.none )
 
         OnKeyDown keycode ->
-            ( { model | playerModel = Player.handleKeyDown model.playerModel keycode }, Cmd.none )
+            ( { model | playerModel = Player.handleKeyDown playerModel keycode }, Cmd.none )
 
         OnKeyUp keycode ->
-            ( { model | playerModel = Player.handleKeyUp model.playerModel keycode }, Cmd.none )
+            ( { model | playerModel = Player.handleKeyUp playerModel keycode }, Cmd.none )
 
 
 
@@ -156,7 +160,7 @@ view model =
                 , style "background-color" "black"
                 , style "margin" "auto"
                 ]
-                (List.concat [ Entity.view (Enemy.toEntity model.enemyModel), Entity.view (Player.toEntity model.playerModel) ])
+                (List.concat [ Entity.view model.enemyModel.entity, Entity.view (Player.toEntity model.playerModel) ])
 
 
 subscriptions : Model -> Sub Action
