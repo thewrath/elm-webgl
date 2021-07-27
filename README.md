@@ -17,8 +17,10 @@ Many improvements can be made to the code: :
 - Mesh management is not very flexible and duplicate code is required for each type of mesh (textured or colored)
 - The `Player`, `Enemy` and `Bullet` modules have a lot of duplicate code that could be pooled into the `Entity` module.
 	- The problem here is to achieve polymorphism/inheritance/composition with Elm Records.
+- A better API for rendering (in pipeline mode for example, with a list in which we add the entities to render).
 
 ## Todo 
-- Use nested Entity in Player module (like in Enemy module)
 - texture region to load spritesheet instead of single sprite
 - turn angle into radian and add modulo 
+- multiple key support (more than 3)
+- Improvement of the shooting logic

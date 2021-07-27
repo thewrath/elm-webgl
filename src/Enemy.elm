@@ -29,4 +29,8 @@ init mesh camera =
 
 update : Model -> Model
 update ({ entity } as model) =
-    { model | entity = Entity.withAngle (entity.renderingProperties.angle + 0.05) entity }
+    model
+
+
+
+--{ model | entity = Entity.withAngle (entity.renderingProperties.angle + 0.05) entity }

@@ -64,6 +64,12 @@ update model =
     model
         |> move
         |> shoot
+        |> updateBullets
+
+
+updateBullets : Model -> Model
+updateBullets ({ bullets } as model) =
+    { model | bullets = List.map Bullet.update bullets }
 
 
 
@@ -102,16 +108,27 @@ move ({ entity } as model) =
         |> applyVelocity
 
 
+addBullet : Model -> Bullet.Model -> Model
+addBullet ({ bullets } as model) bullet =
+    { model | bullets = bullet :: bullets }
+
+
 
 -- Shoot bullet on space down
 
 
 shoot : Model -> Model
-shoot model =
+shoot ({ bulletPrototype } as model) =
     -- check if space is down
     if Maybe.withDefault False (Dict.get " " model.keyStates) then
-        model
-        -- @Todo : clone bulletPrototype and add new instance in bullets list
+        Bullet.clone bulletPrototype
+            |> Bullet.withPosition model.entity.renderingProperties.position
+            |> addBullet model
 
     else
         model
+
+
+renderBullets : Model -> List WebGL.Entity
+renderBullets ({ bullets } as model) =
+    List.concat (List.map (.entity >> Entity.view) bullets)

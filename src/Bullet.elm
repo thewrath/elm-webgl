@@ -2,7 +2,7 @@ module Bullet exposing (..)
 
 import Entity exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
-import Math.Vector2 as Vec2 exposing (Vec2, vec2)
+import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
 import Render exposing (..)
 import RenderingProperties exposing (..)
 import Texture exposing (..)
@@ -13,12 +13,25 @@ import WebGL.Texture exposing (Texture)
 
 type alias Model =
     { entity : Entity.Model
+    , speed : Float
     }
 
 
 init : Mesh TextureVertex -> Mat4 -> Model
 init mesh camera =
-    { entity = Entity.empty mesh camera }
+    let
+        entity =
+            Entity.empty mesh camera
+                |> Entity.withPosition (vec2 -50 -50)
+                |> Entity.withSize (vec2 8 8)
+                |> Entity.withAngle 0
+    in
+    Model entity 40.0
+
+
+withPosition : Position -> Model -> Model
+withPosition position model =
+    { model | entity = Entity.withPosition position model.entity }
 
 
 withTexture : String -> TextureContainer -> Model -> Model
@@ -32,10 +45,10 @@ clone model =
 
 
 update : Model -> Model
-update ({ entity } as model) =
-    { model | entity = updateEntity entity }
+update ({ entity, speed } as model) =
+    { model | entity = updateEntity entity speed }
 
 
-updateEntity : Entity.Model -> Entity.Model
-updateEntity entity =
-    entity
+updateEntity : Entity.Model -> Float -> Entity.Model
+updateEntity ({ renderingProperties } as entity) speed =
+    { entity | renderingProperties = RenderingProperties.withPosition (add renderingProperties.position (vec2 0 speed)) renderingProperties }

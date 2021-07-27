@@ -80,7 +80,11 @@ init _ =
             }
 
         textures =
-            Dict.fromList [ ( "Alien", "../textures/shmup/shmup/color/alien1.png" ), ( "Player", "../textures/shmup/shmup/color/alien15.png" ) ]
+            Dict.fromList
+                [ ( "Alien", "../textures/shmup/shmup/color/alien1.png" )
+                , ( "Player", "../textures/shmup/shmup/color/alien15.png" )
+                , ( "Bullet", "../textures/shmup/shmup/color/alien15.png" )
+                ]
     in
     ( { textures = Nothing
       , meshBank = meshBank
@@ -105,14 +109,11 @@ update action ({ enemyModel, playerModel } as model) =
             let
                 newEnemyModel =
                     { enemyModel | entity = Entity.withTexture "Alien" textures enemyModel.entity }
-
-                newPlayerModel =
-                    { playerModel | entity = Entity.withTexture "Player" textures playerModel.entity }
             in
             ( { model
                 | textures = Just textures
                 , enemyModel = newEnemyModel
-                , playerModel = newPlayerModel
+                , playerModel = Player.onTexturesLoaded textures playerModel
               }
             , Cmd.none
             )
@@ -169,7 +170,7 @@ view ({ playerModel, enemyModel } as model) =
                 , style "background-color" "black"
                 , style "margin" "auto"
                 ]
-                (List.concat [ Entity.view enemyModel.entity, Entity.view playerModel.entity ])
+                (List.concat [ Entity.view enemyModel.entity, Entity.view playerModel.entity, Player.renderBullets playerModel ])
 
 
 subscriptions : Model -> Sub Action
