@@ -7,6 +7,7 @@ import Debug
 import Dict exposing (Dict)
 import Enemy exposing (..)
 import Entity exposing (..)
+import Gun exposing (..)
 import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
 import Json.Decode as Decode exposing (Value)
@@ -83,7 +84,7 @@ init _ =
             Dict.fromList
                 [ ( "Alien", "../textures/shmup/shmup/color/alien1.png" )
                 , ( "Player", "../textures/shmup/shmup/color/alien15.png" )
-                , ( "Bullet", "../textures/shmup/shmup/color/alien15.png" )
+                , ( "Bullet", "../textures/shmup/shmup/color/alien22.png" )
                 ]
     in
     ( { textures = Nothing
@@ -170,7 +171,7 @@ view ({ playerModel, enemyModel } as model) =
                 , style "background-color" "black"
                 , style "margin" "auto"
                 ]
-                (List.concat [ Entity.view enemyModel.entity, Entity.view playerModel.entity, Player.renderBullets playerModel ])
+                (List.concat [ Gun.renderBullets playerModel.gun, Entity.view enemyModel.entity, Entity.view playerModel.entity ])
 
 
 subscriptions : Model -> Sub Action

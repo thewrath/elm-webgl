@@ -4,6 +4,7 @@ import Bullet exposing (..)
 import Debug exposing (..)
 import Dict exposing (Dict)
 import Entity exposing (..)
+import Gun exposing (..)
 import Json.Decode as Decode
 import KeyHandler exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
@@ -19,8 +20,7 @@ type alias Model =
     { entity : Entity.Model
     , speed : Float -- Speed in all direction
     , keyStates : KeyStates
-    , bullets : List Bullet.Model
-    , bulletPrototype : Bullet.Model
+    , gun : Gun.Model
     }
 
 
@@ -36,8 +36,7 @@ init mesh camera =
     { entity = entity
     , speed = 4
     , keyStates = Dict.empty
-    , bullets = []
-    , bulletPrototype = Bullet.init mesh camera
+    , gun = Gun.Unarmed
     }
 
 
@@ -52,10 +51,10 @@ withKeyStates keyStates model =
 
 
 onTexturesLoaded : TextureContainer -> Model -> Model
-onTexturesLoaded textureContainer ({ bulletPrototype } as model) =
+onTexturesLoaded textureContainer ({ gun, entity } as model) =
     { model
-        | bulletPrototype = Bullet.withTexture "Bullet" textureContainer bulletPrototype
-        , entity = Entity.withTexture "Player" textureContainer model.entity
+        | gun = gun |> Gun.withBulletPrototype (Bullet.init model.entity.mesh model.entity.camera |> Bullet.withTexture "Bullet" textureContainer)
+        , entity = entity |> Entity.withTexture "Player" textureContainer
     }
 
 
@@ -64,12 +63,12 @@ update model =
     model
         |> move
         |> shoot
-        |> updateBullets
+        |> updateGun
 
 
-updateBullets : Model -> Model
-updateBullets ({ bullets } as model) =
-    { model | bullets = List.map Bullet.update bullets }
+updateGun : Model -> Model
+updateGun ({ gun } as model) =
+    { model | gun = Gun.updateBullets gun }
 
 
 
@@ -108,27 +107,26 @@ move ({ entity } as model) =
         |> applyVelocity
 
 
-addBullet : Model -> Bullet.Model -> Model
-addBullet ({ bullets } as model) bullet =
-    { model | bullets = bullet :: bullets }
-
-
 
 -- Shoot bullet on space down
 
 
 shoot : Model -> Model
-shoot ({ bulletPrototype } as model) =
-    -- check if space is down
-    if Maybe.withDefault False (Dict.get " " model.keyStates) then
-        Bullet.clone bulletPrototype
-            |> Bullet.withPosition model.entity.renderingProperties.position
-            |> addBullet model
+shoot ({ gun } as model) =
+    case gun of
+        Unarmed ->
+            model
 
-    else
-        model
+        Armed g ->
+            -- check if space is down
+            if Maybe.withDefault False (Dict.get " " model.keyStates) && g.bulletTimeout == 0 then
+                { model
+                    | gun =
+                        Bullet.clone g.bulletPrototype
+                            |> Bullet.withPosition model.entity.renderingProperties.position
+                            |> Gun.addBullet gun
+                            |> Gun.withBulletTimeout 6
+                }
 
-
-renderBullets : Model -> List WebGL.Entity
-renderBullets ({ bullets } as model) =
-    List.concat (List.map (.entity >> Entity.view) bullets)
+            else
+                model

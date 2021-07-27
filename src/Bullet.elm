@@ -26,7 +26,7 @@ init mesh camera =
                 |> Entity.withSize (vec2 8 8)
                 |> Entity.withAngle 0
     in
-    Model entity 40.0
+    Model entity 20.0
 
 
 withPosition : Position -> Model -> Model
