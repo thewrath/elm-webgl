@@ -5,6 +5,7 @@ import Debug exposing (..)
 import Dict exposing (Dict)
 import Entity exposing (..)
 import Json.Decode as Decode
+import KeyHandler exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import RenderingProperties exposing (..)
@@ -15,12 +16,9 @@ import WebGL.Texture exposing (Texture)
 
 
 type alias Model =
-    { mesh : Mesh TextureVertex
+    { entity : Entity.Model
     , speed : Float -- Speed in all direction
-    , texture : Maybe WebGL.Texture.Texture
-    , camera : Mat4
-    , keyStates : Dict String Bool
-    , renderingProperties : RenderingProperties
+    , keyStates : KeyStates
     , bullets : List Bullet.Model
     , bulletPrototype : Bullet.Model
     }
@@ -29,56 +27,36 @@ type alias Model =
 init : Mesh TextureVertex -> Mat4 -> Model
 init mesh camera =
     let
-        renderingProperties =
-            RenderingProperties.empty
-                |> RenderingProperties.withPosition (vec2 0 0)
-                |> RenderingProperties.withSize (vec2 32 32)
-                |> RenderingProperties.withAngle 0
+        entity =
+            Entity.empty mesh camera
+                |> Entity.withPosition (vec2 50 50)
+                |> Entity.withSize (vec2 32 32)
+                |> Entity.withAngle 0
     in
-    { mesh = mesh
+    { entity = entity
     , speed = 4
-    , texture = Nothing
-    , camera = camera
     , keyStates = Dict.empty
-    , renderingProperties = renderingProperties
     , bullets = []
     , bulletPrototype = Bullet.init mesh camera
     }
 
 
-onTexturesLoaded : TextureContainer -> Model -> Model
-onTexturesLoaded textureContainer ({ bulletPrototype } as model) =
-    { model | bulletPrototype = Bullet.withTexture "Bullet" textureContainer bulletPrototype }
-        |> withTexture "Player" textureContainer
-
-
-toEntity : Model -> Entity.Model
-toEntity model =
-    { texture = model.texture
-    , mesh = model.mesh
-    , camera = model.camera
-    , renderingProperties = model.renderingProperties
-    }
-
-
-withTexture : String -> TextureContainer -> Model -> Model
-withTexture textureName textures model =
-    { model | texture = Dict.get textureName textures }
-
-
 withPosition : Position -> Model -> Model
 withPosition position model =
-    { model | renderingProperties = RenderingProperties.withPosition position model.renderingProperties }
+    { model | entity = Entity.withPosition position model.entity }
 
 
-handleKeyDown : Model -> String -> Model
-handleKeyDown model keycode =
-    { model | keyStates = Dict.insert keycode True model.keyStates }
+withKeyStates : KeyStates -> Model -> Model
+withKeyStates keyStates model =
+    { model | keyStates = keyStates }
 
 
-handleKeyUp : Model -> String -> Model
-handleKeyUp model keycode =
-    { model | keyStates = Dict.insert keycode False model.keyStates }
+onTexturesLoaded : TextureContainer -> Model -> Model
+onTexturesLoaded textureContainer ({ bulletPrototype } as model) =
+    { model
+        | bulletPrototype = Bullet.withTexture "Bullet" textureContainer bulletPrototype
+        , entity = Entity.withTexture "Player" textureContainer model.entity
+    }
 
 
 update : Model -> Model
@@ -93,7 +71,7 @@ update model =
 
 
 move : Model -> Model
-move model =
+move ({ entity } as model) =
     let
         keyActions =
             Dict.fromList
@@ -104,7 +82,7 @@ move model =
                 ]
 
         applyVelocity velocity =
-            { model | renderingProperties = RenderingProperties.withPosition (Vec2.add model.renderingProperties.position velocity) model.renderingProperties }
+            { model | entity = Entity.withPosition (Vec2.add entity.renderingProperties.position velocity) entity }
     in
     Dict.keys keyActions
         |> List.map

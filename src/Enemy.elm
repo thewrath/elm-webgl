@@ -17,14 +17,16 @@ type alias Model =
 
 init : Mesh TextureVertex -> Mat4 -> Model
 init mesh camera =
-    { entity = Entity.init mesh camera }
+    let
+        entity =
+            Entity.empty mesh camera
+                |> Entity.withPosition (vec2 50 50)
+                |> Entity.withSize (vec2 32 32)
+                |> Entity.withAngle 0
+    in
+    { entity = entity }
 
 
 update : Model -> Model
 update ({ entity } as model) =
-    { model | entity = updateEntity entity }
-
-
-updateEntity : Entity.Model -> Entity.Model
-updateEntity entity =
-    { entity | renderingProperties = RenderingProperties.withAngle (entity.renderingProperties.angle + 0.05) entity.renderingProperties }
+    { model | entity = Entity.withAngle (entity.renderingProperties.angle + 0.05) entity }

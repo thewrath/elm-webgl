@@ -13,7 +13,6 @@ import WebGL.Texture exposing (Texture)
 
 
 -- @Todo : abstract mesh declaration
--- @Todo : use builder pattern https://sporto.github.io/elm-patterns/basic/builder-pattern.html
 
 
 type alias Model =
@@ -24,20 +23,28 @@ type alias Model =
     }
 
 
-init : Mesh TextureVertex -> Mat4 -> Model
-init mesh camera =
-    let
-        renderingProperties =
-            RenderingProperties.empty
-                |> RenderingProperties.withPosition (vec2 50 50)
-                |> RenderingProperties.withSize (vec2 32 32)
-                |> RenderingProperties.withAngle 0
-    in
+empty : Mesh TextureVertex -> Mat4 -> Model
+empty mesh camera =
     { mesh = mesh
     , texture = Nothing
     , camera = camera
-    , renderingProperties = renderingProperties
+    , renderingProperties = RenderingProperties.empty
     }
+
+
+withPosition : Position -> Model -> Model
+withPosition position model =
+    { model | renderingProperties = RenderingProperties.withPosition position model.renderingProperties }
+
+
+withSize : Size -> Model -> Model
+withSize size model =
+    { model | renderingProperties = RenderingProperties.withSize size model.renderingProperties }
+
+
+withAngle : Float -> Model -> Model
+withAngle angle model =
+    { model | renderingProperties = RenderingProperties.withAngle angle model.renderingProperties }
 
 
 withTexture : String -> TextureContainer -> Model -> Model

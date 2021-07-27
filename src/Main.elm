@@ -10,6 +10,7 @@ import Entity exposing (..)
 import Html exposing (Html, text)
 import Html.Attributes exposing (height, style, width)
 import Json.Decode as Decode exposing (Value)
+import KeyHandler exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
@@ -19,6 +20,7 @@ import RenderingProperties exposing (..)
 import Shaders exposing (..)
 import Task exposing (..)
 import Texture exposing (TextureContainer, loadTextures)
+import Tuple exposing (..)
 import Type exposing (..)
 import WebGL exposing (..)
 import WebGL.Texture exposing (Error, Options, linear, nearest, repeat)
@@ -103,11 +105,14 @@ update action ({ enemyModel, playerModel } as model) =
             let
                 newEnemyModel =
                     { enemyModel | entity = Entity.withTexture "Alien" textures enemyModel.entity }
+
+                newPlayerModel =
+                    { playerModel | entity = Entity.withTexture "Player" textures playerModel.entity }
             in
             ( { model
                 | textures = Just textures
                 , enemyModel = newEnemyModel
-                , playerModel = Player.withTexture "Player" textures model.playerModel
+                , playerModel = newPlayerModel
               }
             , Cmd.none
             )
@@ -127,25 +132,29 @@ update action ({ enemyModel, playerModel } as model) =
             ( newModel, Cmd.none )
 
         GetViewport { viewport } ->
-            let
-                _ =
-                    Debug.log "viewport :" viewport
-            in
             ( model, Cmd.none )
 
         OnKeyDown keycode ->
-            ( { model | playerModel = Player.handleKeyDown playerModel keycode }, Cmd.none )
+            Cmd.none
+                |> Tuple.pair (updatePlayerModel model (Player.withKeyStates (KeyHandler.handleKeyDown playerModel.keyStates keycode) playerModel))
 
         OnKeyUp keycode ->
-            ( { model | playerModel = Player.handleKeyUp playerModel keycode }, Cmd.none )
+            Cmd.none
+                |> Tuple.pair (updatePlayerModel model (Player.withKeyStates (KeyHandler.handleKeyUp playerModel.keyStates keycode) playerModel))
 
 
+updatePlayerModel : Model -> Player.Model -> Model
+updatePlayerModel model playerModel =
+    { model | playerModel = playerModel }
 
--- Draw stuff here
+
+updateEnenemyModel : Model -> Enemy.Model -> Model
+updateEnenemyModel model enemyModel =
+    { model | enemyModel = enemyModel }
 
 
 view : Model -> Html msg
-view model =
+view ({ playerModel, enemyModel } as model) =
     case model.textures of
         -- textures not loaded
         Nothing ->
@@ -160,7 +169,7 @@ view model =
                 , style "background-color" "black"
                 , style "margin" "auto"
                 ]
-                (List.concat [ Entity.view model.enemyModel.entity, Entity.view (Player.toEntity model.playerModel) ])
+                (List.concat [ Entity.view enemyModel.entity, Entity.view playerModel.entity ])
 
 
 subscriptions : Model -> Sub Action

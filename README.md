@@ -21,3 +21,4 @@ Many improvements can be made to the code: :
 ## Todo 
 - Use nested Entity in Player module (like in Enemy module)
 - texture region to load spritesheet instead of single sprite
+- turn angle into radian and add modulo 

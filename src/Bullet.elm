@@ -18,7 +18,7 @@ type alias Model =
 
 init : Mesh TextureVertex -> Mat4 -> Model
 init mesh camera =
-    { entity = Entity.init mesh camera }
+    { entity = Entity.empty mesh camera }
 
 
 withTexture : String -> TextureContainer -> Model -> Model
