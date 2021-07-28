@@ -12,6 +12,7 @@ import WebGL.Texture exposing (Texture)
 
 type alias Model =
     { entity : Entity.Model
+    , speed : Float -- Down speed
     }
 
 
@@ -20,17 +21,29 @@ init mesh camera =
     let
         entity =
             Entity.empty mesh camera
-                |> Entity.withPosition (vec2 50 50)
+                |> Entity.withPosition (vec2 0 0)
                 |> Entity.withSize (vec2 32 32)
                 |> Entity.withAngle 0
     in
-    { entity = entity }
+    Model entity -2.0
+
+
+withPosition : Position -> Model -> Model
+withPosition position model =
+    { model | entity = Entity.withPosition position model.entity }
+
+
+withSpeed : Float -> Model -> Model
+withSpeed speed model =
+    { model | speed = speed }
 
 
 update : Model -> Model
-update ({ entity } as model) =
+update model =
     model
+        |> goDown
 
 
-
---{ model | entity = Entity.withAngle (entity.renderingProperties.angle + 0.05) entity }
+goDown : Model -> Model
+goDown ({ entity } as model) =
+    { model | entity = Entity.applyVelocity (vec2 0 model.speed) entity }

@@ -46,9 +46,4 @@ clone model =
 
 update : Model -> Model
 update ({ entity, speed } as model) =
-    { model | entity = updateEntity entity speed }
-
-
-updateEntity : Entity.Model -> Float -> Entity.Model
-updateEntity ({ renderingProperties } as entity) speed =
-    { entity | renderingProperties = RenderingProperties.withPosition (add renderingProperties.position (vec2 0 speed)) renderingProperties }
+    { model | entity = Entity.applyVelocity (vec2 0 speed) entity }

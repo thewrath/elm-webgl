@@ -2,7 +2,7 @@ module Entity exposing (..)
 
 import Dict exposing (Dict)
 import Math.Matrix4 as Mat4 exposing (Mat4)
-import Math.Vector2 as Vec2 exposing (Vec2, vec2)
+import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
 import Render exposing (..)
 import RenderingProperties exposing (..)
 import Texture exposing (..)
@@ -61,3 +61,8 @@ view model =
         Just texture ->
             [ renderSprite model.mesh model.renderingProperties texture model.camera
             ]
+
+
+applyVelocity : Vec2 -> Model -> Model
+applyVelocity velocity ({ renderingProperties } as model) =
+    { model | renderingProperties = RenderingProperties.withPosition (Vec2.add renderingProperties.position velocity) renderingProperties }

@@ -89,7 +89,7 @@ init _ =
     in
     ( { textures = Nothing
       , meshBank = meshBank
-      , enemyModel = Enemy.init initMeshBank.textureMesh orthographicCamera
+      , enemyModel = Enemy.init initMeshBank.textureMesh orthographicCamera |> Enemy.withPosition (vec2 400 825)
       , playerModel = Player.init initMeshBank.textureMesh orthographicCamera |> Player.withPosition (vec2 400 400)
       }
     , Cmd.batch

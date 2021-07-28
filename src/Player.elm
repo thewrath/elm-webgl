@@ -85,9 +85,6 @@ move ({ entity } as model) =
                 , ( "ArrowDown", vec2 0 -1 )
                 , ( "ArrowLeft", vec2 -1 0 )
                 ]
-
-        applyVelocity velocity =
-            { model | entity = Entity.withPosition (Vec2.add entity.renderingProperties.position velocity) entity }
     in
     Dict.keys keyActions
         |> List.map
@@ -103,8 +100,37 @@ move ({ entity } as model) =
             )
         |> List.foldr Vec2.add (vec2 0 0)
         |> Vec2.scale model.speed
-        -- Add correction of higher speed in diagonal direction
-        |> applyVelocity
+        -- @Todo Add correction of higher speed in diagonal direction
+        |> applyVelocity model
+        -- Up side
+        |> checkSide (\p s -> p.y + s.y >= 800) (vec2 0 1)
+        -- Right side
+        |> checkSide (\p s -> p.x + s.x >= 800) (vec2 -1 0)
+        -- Down side
+        |> checkSide (\p s -> p.y <= 0) (vec2 0 1)
+        -- Left side
+        |> checkSide (\p s -> p.x <= 0) (vec2 1 0)
+
+
+applyVelocity : Model -> Vec2 -> Model
+applyVelocity model velocity =
+    { model | entity = Entity.applyVelocity velocity model.entity }
+
+
+checkSide : ({ x : Float, y : Float } -> { x : Float, y : Float } -> Bool) -> Vec2 -> Model -> Model
+checkSide checker velocity ({ entity } as model) =
+    let
+        position =
+            entity.renderingProperties.position
+
+        size =
+            entity.renderingProperties.size
+    in
+    if checker (Vec2.toRecord position) (Vec2.toRecord size) then
+        applyVelocity model velocity
+
+    else
+        model
 
 
 
