@@ -77,3 +77,13 @@ view gun =
 
         Armed ({ bullets } as model) ->
             List.concat (List.map (.entity >> Entity.view) bullets)
+
+
+getBullets : Model -> List Bullet.Model
+getBullets model =
+    case model of
+        Unarmed ->
+            []
+
+        Armed gun ->
+            gun.bullets

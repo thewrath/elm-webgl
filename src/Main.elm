@@ -126,7 +126,7 @@ update action ({ wave, playerModel } as model) =
             let
                 newModel =
                     { model
-                        | wave = Wave.update wave
+                        | wave = Wave.update wave |> handleBulletsCollision (Gun.getBullets playerModel.gun)
                         , playerModel = Player.update playerModel
                     }
             in
@@ -147,19 +147,6 @@ update action ({ wave, playerModel } as model) =
 updatePlayerModel : Model -> Player.Model -> Model
 updatePlayerModel model playerModel =
     { model | playerModel = playerModel }
-
-
-
--- @Todo Can be easily abstracted into "check for collisions between two List Entity".
-
-
-checkEnemiesBulletsCollision : List Enemy.Model -> List Bullet.Model -> Bool
-checkEnemiesBulletsCollision enemies bullets =
-    let
-        checkEnemyBulletsCollision enemy =
-            (not << List.isEmpty) <| List.filter (\b -> Collision.checkCollision (Entity.toCollisionBox b.entity) (Entity.toCollisionBox enemy.entity)) bullets
-    in
-    List.foldl ((||) << checkEnemyBulletsCollision) False enemies
 
 
 view : Model -> Html msg

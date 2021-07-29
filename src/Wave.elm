@@ -1,5 +1,7 @@
 module Wave exposing (..)
 
+import Bullet exposing (..)
+import Collision exposing (..)
 import Constant exposing (..)
 import Enemy exposing (..)
 import Entity exposing (..)
@@ -65,6 +67,15 @@ update ({ timeout, enemies } as model) =
 destroyOutOfScreenEnemies : Model -> Model
 destroyOutOfScreenEnemies ({ enemies } as model) =
     { model | enemies = List.filter (not << isOutOfScreen) enemies }
+
+
+handleBulletsCollision : List Bullet.Model -> Model -> Model
+handleBulletsCollision bullets ({ enemies } as model) =
+    let
+        checkEnemyBulletsCollision enemy =
+            (not << List.isEmpty) <| List.filter (\b -> Collision.checkCollision (Entity.toCollisionBox b.entity) (Entity.toCollisionBox enemy.entity)) bullets
+    in
+    { model | enemies = List.filter (not << checkEnemyBulletsCollision) enemies }
 
 
 
