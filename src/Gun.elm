@@ -1,7 +1,9 @@
 module Gun exposing (..)
 
 import Bullet exposing (..)
+import Constant exposing (..)
 import Entity exposing (..)
+import Math.Vector2 as Vec2 exposing (getY)
 import WebGL exposing (Entity, Mesh, Shader)
 
 
@@ -44,7 +46,27 @@ addBullet model bullet =
 
 updateBullets : Model -> Model
 updateBullets model =
-    ifArmed model (\g -> Armed { g | bullets = List.map Bullet.update g.bullets, bulletTimeout = clamp 0 100 (g.bulletTimeout - 1) })
+    ifArmed model
+        (\g ->
+            Armed
+                ({ g | bullets = List.map Bullet.update g.bullets, bulletTimeout = clamp 0 100 (g.bulletTimeout - 1) }
+                    |> destroyOutOfScreenBullets
+                )
+        )
+
+
+destroyOutOfScreenBullets : Gun -> Gun
+destroyOutOfScreenBullets ({ bullets } as gun) =
+    { gun | bullets = List.filter (not << isOutOfScreen) bullets }
+
+
+
+-- Only check y axe because bullet only go up
+
+
+isOutOfScreen : Bullet.Model -> Bool
+isOutOfScreen bullet =
+    getY bullet.entity.renderingProperties.position > Constant.getHeight
 
 
 renderBullets : Model -> List WebGL.Entity
