@@ -1,5 +1,6 @@
 module Bullet exposing (..)
 
+import Collision exposing (..)
 import Entity exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
@@ -37,11 +38,6 @@ withPosition position model =
 withTexture : String -> TextureContainer -> Model -> Model
 withTexture textureName textures model =
     { model | entity = Entity.withTexture textureName textures model.entity }
-
-
-clone : Model -> Model
-clone model =
-    model
 
 
 update : Model -> Model

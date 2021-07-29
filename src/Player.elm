@@ -152,7 +152,7 @@ shoot ({ gun } as model) =
             if Maybe.withDefault False (Dict.get " " model.keyStates) && g.bulletTimeout == 0 then
                 { model
                     | gun =
-                        Bullet.clone g.bulletPrototype
+                        g.bulletPrototype
                             |> Bullet.withPosition model.entity.renderingProperties.position
                             |> Gun.addBullet gun
                             |> Gun.withBulletTimeout 6
@@ -160,3 +160,13 @@ shoot ({ gun } as model) =
 
             else
                 model
+
+
+getBullets : Model -> List Bullet.Model
+getBullets model =
+    case model.gun of
+        Unarmed ->
+            []
+
+        Armed gun ->
+            gun.bullets

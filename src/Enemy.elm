@@ -5,6 +5,7 @@ import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Render exposing (..)
 import RenderingProperties exposing (..)
+import Texture exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh, Shader)
 import WebGL.Texture exposing (Texture)
@@ -36,6 +37,11 @@ withPosition position model =
 withSpeed : Float -> Model -> Model
 withSpeed speed model =
     { model | speed = speed }
+
+
+withTexture : String -> TextureContainer -> Model -> Model
+withTexture textures textureName model =
+    { model | entity = Entity.withTexture textures textureName model.entity }
 
 
 update : Model -> Model

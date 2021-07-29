@@ -23,4 +23,4 @@ Many improvements can be made to the code: :
 - texture region to load spritesheet instead of single sprite
 - turn angle into radian and add modulo 
 - multiple key support (more than 3)
-- Enemy waves 
+- HUD for score and life 

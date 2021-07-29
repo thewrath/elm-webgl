@@ -3,8 +3,9 @@ module Main exposing (..)
 import Browser
 import Browser.Dom exposing (Viewport, getViewport)
 import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp)
+import Bullet exposing (..)
+import Collision exposing (..)
 import Constant exposing (..)
-import Debug
 import Dict exposing (Dict)
 import Enemy exposing (..)
 import Entity exposing (..)
@@ -24,6 +25,7 @@ import Task exposing (..)
 import Texture exposing (TextureContainer, loadTextures)
 import Tuple exposing (..)
 import Type exposing (..)
+import Wave exposing (..)
 import WebGL exposing (..)
 import WebGL.Texture exposing (Error, Options, linear, nearest, repeat)
 
@@ -35,7 +37,7 @@ import WebGL.Texture exposing (Error, Options, linear, nearest, repeat)
 type alias Model =
     { textures : Maybe TextureContainer
     , meshBank : MeshBank
-    , enemyModel : Enemy.Model
+    , wave : Wave.Model
     , playerModel : Player.Model
     }
 
@@ -90,7 +92,7 @@ init _ =
     in
     ( { textures = Nothing
       , meshBank = meshBank
-      , enemyModel = Enemy.init initMeshBank.textureMesh Constant.orthographicCamera |> Enemy.withPosition (vec2 400 825)
+      , wave = Wave.empty
       , playerModel = Player.init initMeshBank.textureMesh Constant.orthographicCamera |> Player.withPosition (vec2 400 400)
       }
     , Cmd.batch
@@ -105,16 +107,12 @@ init _ =
 
 
 update : Action -> Model -> ( Model, Cmd Action )
-update action ({ enemyModel, playerModel } as model) =
+update action ({ wave, playerModel } as model) =
     case action of
         TexturesLoaded textures ->
-            let
-                newEnemyModel =
-                    { enemyModel | entity = Entity.withTexture "Alien" textures enemyModel.entity }
-            in
             ( { model
                 | textures = Just textures
-                , enemyModel = newEnemyModel
+                , wave = Wave.withEnemyPrototype (Wave.createEnemyPrototype initMeshBank.textureMesh textures) wave
                 , playerModel = Player.onTexturesLoaded textures playerModel
               }
             , Cmd.none
@@ -128,7 +126,7 @@ update action ({ enemyModel, playerModel } as model) =
             let
                 newModel =
                     { model
-                        | enemyModel = Enemy.update enemyModel
+                        | wave = Wave.update wave
                         , playerModel = Player.update playerModel
                     }
             in
@@ -151,13 +149,21 @@ updatePlayerModel model playerModel =
     { model | playerModel = playerModel }
 
 
-updateEnenemyModel : Model -> Enemy.Model -> Model
-updateEnenemyModel model enemyModel =
-    { model | enemyModel = enemyModel }
+
+-- @Todo Can be easily abstracted into "check for collisions between two List Entity".
+
+
+checkEnemiesBulletsCollision : List Enemy.Model -> List Bullet.Model -> Bool
+checkEnemiesBulletsCollision enemies bullets =
+    let
+        checkEnemyBulletsCollision enemy =
+            (not << List.isEmpty) <| List.filter (\b -> Collision.checkCollision (Entity.toCollisionBox b.entity) (Entity.toCollisionBox enemy.entity)) bullets
+    in
+    List.foldl ((||) << checkEnemyBulletsCollision) False enemies
 
 
 view : Model -> Html msg
-view ({ playerModel, enemyModel } as model) =
+view ({ playerModel, wave } as model) =
     case model.textures of
         -- textures not loaded
         Nothing ->
@@ -172,18 +178,13 @@ view ({ playerModel, enemyModel } as model) =
                 , style "background-color" "black"
                 , style "margin" "auto"
                 ]
-                (List.concat [ Gun.renderBullets playerModel.gun, Entity.view enemyModel.entity, Entity.view playerModel.entity ])
+                (List.concat [ Gun.view playerModel.gun, Wave.view wave, Entity.view playerModel.entity ])
 
 
 subscriptions : Model -> Sub Action
 subscriptions model =
     Sub.batch
         [ onAnimationFrameDelta (\f -> AnimationFrame f)
-        , onKeyDown (keycodeDecoder OnKeyDown)
-        , onKeyUp (keycodeDecoder OnKeyUp)
+        , onKeyDown (KeyHandler.keycodeDecoder OnKeyDown)
+        , onKeyUp (KeyHandler.keycodeDecoder OnKeyUp)
         ]
-
-
-keycodeDecoder : (String -> Action) -> Decode.Decoder Action
-keycodeDecoder action =
-    Decode.map action (Decode.field "key" Decode.string)

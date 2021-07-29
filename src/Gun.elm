@@ -69,8 +69,8 @@ isOutOfScreen bullet =
     getY bullet.entity.renderingProperties.position > Constant.getHeight
 
 
-renderBullets : Model -> List WebGL.Entity
-renderBullets gun =
+view : Model -> List WebGL.Entity
+view gun =
     case gun of
         Unarmed ->
             []
