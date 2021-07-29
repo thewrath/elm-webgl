@@ -187,8 +187,4 @@ getBullets model =
 
 view : Model -> List WebGL.Entity
 view model =
-    if model.isMoving || model.isShooting then
-        Entity.view model.entity
-
-    else
-        []
+    Entity.view model.entity

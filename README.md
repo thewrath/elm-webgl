@@ -21,7 +21,6 @@ Many improvements can be made to the code: :
 
 ## Todo 
 - texture region to load spritesheet instead of single sprite
-- turn angle into radian and add modulo 
 - multiple key support (more than 3)
 - HUD for score and life 
 - Fix page scroll on arrow key down

@@ -39,5 +39,5 @@ transformRenderingProperties : { position : Vec2, size : Vec2, angle : Float } -
 transformRenderingProperties renderingProperties =
     Mat4.identity
         |> Mat4.translate (vec3 (getX renderingProperties.position) (getY renderingProperties.position) 1)
-        |> Mat4.rotate renderingProperties.angle (vec3 0 0 1)
+        |> Mat4.rotate (degrees renderingProperties.angle) (vec3 0 0 1)
         |> Mat4.scale (vec3 (getX renderingProperties.size) (getY renderingProperties.size) 1)

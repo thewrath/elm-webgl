@@ -93,7 +93,7 @@ init _ =
     ( { textures = Nothing
       , meshBank = meshBank
       , wave = Wave.empty
-      , playerModel = Player.init initMeshBank.textureMesh Constant.orthographicCamera |> Player.withPosition (vec2 (Constant.getWidth / 2) (Constant.getHeight / 2))
+      , playerModel = Player.init meshBank.textureMesh Constant.orthographicCamera |> Player.withPosition (vec2 (Constant.getWidth / 2) (Constant.getHeight / 2))
       }
     , Cmd.batch
         [ loadTextures textureOptions textures TexturesLoaded TexturesError
@@ -107,12 +107,20 @@ init _ =
 
 
 update : Action -> Model -> ( Model, Cmd Action )
-update action ({ wave, playerModel } as model) =
+update action ({ wave, playerModel, meshBank } as model) =
     case action of
         TexturesLoaded textures ->
+            let
+                enemyGun =
+                    Gun.empty
+                        |> Gun.withBulletPrototype (Bullet.init meshBank.textureMesh Constant.orthographicCamera |> Bullet.withTexture "Bullet" textures)
+
+                waveEnemyPrototype =
+                    Wave.createEnemyPrototype meshBank.textureMesh textures |> Enemy.withGun enemyGun
+            in
             ( { model
                 | textures = Just textures
-                , wave = Wave.withEnemyPrototype (Wave.createEnemyPrototype initMeshBank.textureMesh textures) wave
+                , wave = Wave.withEnemyPrototype waveEnemyPrototype wave
                 , playerModel = Player.onTexturesLoaded textures playerModel
               }
             , Cmd.none

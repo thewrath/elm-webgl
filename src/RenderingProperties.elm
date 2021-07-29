@@ -32,4 +32,4 @@ withSize size renderingProperties =
 
 withAngle : Float -> RenderingProperties -> RenderingProperties
 withAngle angle renderingProperties =
-    { renderingProperties | angle = angle }
+    { renderingProperties | angle = toFloat (modBy 360 (round angle)) }

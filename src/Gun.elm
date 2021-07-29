@@ -21,6 +21,11 @@ type Model
     | Armed Gun
 
 
+empty : Model
+empty =
+    Unarmed
+
+
 withBulletPrototype : Bullet.Model -> Model -> Model
 withBulletPrototype bulletPrototype model =
     Armed { bullets = [], bulletPrototype = bulletPrototype, bulletTimeout = 0 }
@@ -60,6 +65,10 @@ updateBullets model =
 destroyOutOfScreenBullets : Gun -> Gun
 destroyOutOfScreenBullets ({ bullets } as gun) =
     { gun | bullets = List.filter (not << isOutOfScreen) bullets }
+
+
+
+-- @Todo turn into "check entity" to avoid cyclic import
 
 
 handleEnemiesCollision : List Enemy.Model -> Model -> Model
