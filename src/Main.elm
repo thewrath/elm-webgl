@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Browser.Dom exposing (Viewport, getViewport)
 import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp)
+import Constant exposing (..)
 import Debug
 import Dict exposing (Dict)
 import Enemy exposing (..)
@@ -89,8 +90,8 @@ init _ =
     in
     ( { textures = Nothing
       , meshBank = meshBank
-      , enemyModel = Enemy.init initMeshBank.textureMesh orthographicCamera |> Enemy.withPosition (vec2 400 825)
-      , playerModel = Player.init initMeshBank.textureMesh orthographicCamera |> Player.withPosition (vec2 400 400)
+      , enemyModel = Enemy.init initMeshBank.textureMesh Constant.orthographicCamera |> Enemy.withPosition (vec2 400 825)
+      , playerModel = Player.init initMeshBank.textureMesh Constant.orthographicCamera |> Player.withPosition (vec2 400 400)
       }
     , Cmd.batch
         [ loadTextures textureOptions textures TexturesLoaded TexturesError
@@ -165,8 +166,8 @@ view ({ playerModel, enemyModel } as model) =
         Just textures ->
             WebGL.toHtmlWith
                 [ WebGL.alpha True, WebGL.antialias ]
-                [ width 800
-                , height 800
+                [ width Constant.getWidth
+                , height Constant.getHeight
                 , style "display" "block"
                 , style "background-color" "black"
                 , style "margin" "auto"
@@ -186,8 +187,3 @@ subscriptions model =
 keycodeDecoder : (String -> Action) -> Decode.Decoder Action
 keycodeDecoder action =
     Decode.map action (Decode.field "key" Decode.string)
-
-
-orthographicCamera : Mat4
-orthographicCamera =
-    Mat4.makeOrtho2D 0 800 0 800

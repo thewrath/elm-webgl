@@ -1,6 +1,7 @@
 module Player exposing (..)
 
 import Bullet exposing (..)
+import Constant exposing (..)
 import Debug exposing (..)
 import Dict exposing (Dict)
 import Entity exposing (..)
@@ -103,13 +104,13 @@ move ({ entity } as model) =
         -- @Todo Add correction of higher speed in diagonal direction
         |> applyVelocity model
         -- Up side
-        |> checkSide (\p s -> p.y + s.y >= 800) (vec2 0 1)
+        |> checkSide (\p s -> ( p.y + s.y >= Constant.getHeight, vec2 p.x (Constant.getHeight - s.y) ))
         -- Right side
-        |> checkSide (\p s -> p.x + s.x >= 800) (vec2 -1 0)
+        |> checkSide (\p s -> ( p.x + s.x >= Constant.getWidth, vec2 (Constant.getWidth - s.x) p.y ))
         -- Down side
-        |> checkSide (\p s -> p.y <= 0) (vec2 0 1)
+        |> checkSide (\p s -> ( p.y - s.y <= 0, vec2 p.x s.y ))
         -- Left side
-        |> checkSide (\p s -> p.x <= 0) (vec2 1 0)
+        |> checkSide (\p s -> ( p.x - s.x <= 0, vec2 s.x p.y ))
 
 
 applyVelocity : Model -> Vec2 -> Model
@@ -117,17 +118,20 @@ applyVelocity model velocity =
     { model | entity = Entity.applyVelocity velocity model.entity }
 
 
-checkSide : ({ x : Float, y : Float } -> { x : Float, y : Float } -> Bool) -> Vec2 -> Model -> Model
-checkSide checker velocity ({ entity } as model) =
+checkSide : ({ x : Float, y : Float } -> { x : Float, y : Float } -> ( Bool, Vec2 )) -> Model -> Model
+checkSide checker ({ entity } as model) =
     let
         position =
             entity.renderingProperties.position
 
         size =
             entity.renderingProperties.size
+
+        ( collision, newPosition ) =
+            checker (Vec2.toRecord position) (Vec2.toRecord size)
     in
-    if checker (Vec2.toRecord position) (Vec2.toRecord size) then
-        applyVelocity model velocity
+    if collision then
+        withPosition newPosition model
 
     else
         model
