@@ -14,13 +14,14 @@ import WebGL exposing (Entity, Mesh)
 type alias Model =
     { enemyPrototype : Maybe Enemy.Model
     , enemies : List Enemy.Model
+    , destroyedEnemies : List Enemy.Model
     , timeout : Int
     }
 
 
 empty : Model
 empty =
-    Model Nothing [] getTimeout
+    Model Nothing [] [] Constant.getWaveDefaultTimeout
 
 
 withEnemyPrototype : Enemy.Model -> Model -> Model
@@ -48,12 +49,9 @@ addEnemy ({ enemies, enemyPrototype } as model) =
 update : Model -> Model
 update ({ timeout, enemies } as model) =
     let
-        _ =
-            Debug.log "enemies" (List.length enemies)
-
         onTimeout fn m =
             if timeout == 0 then
-                { m | timeout = getTimeout }
+                { m | timeout = Constant.getWaveDefaultTimeout }
                     |> fn
 
             else
@@ -70,12 +68,15 @@ destroyOutOfScreenEnemies ({ enemies } as model) =
 
 
 handleBulletsCollision : List Bullet.Model -> Model -> Model
-handleBulletsCollision bullets ({ enemies } as model) =
+handleBulletsCollision bullets model =
     let
         checkEnemyBulletsCollision enemy =
             (not << List.isEmpty) <| List.filter (\b -> Collision.checkCollision (Entity.toCollisionBox b.entity) (Entity.toCollisionBox enemy.entity)) bullets
+
+        ( enemies, destroyedEnemies ) =
+            List.partition (not << checkEnemyBulletsCollision) model.enemies
     in
-    { model | enemies = List.filter (not << checkEnemyBulletsCollision) enemies }
+    { model | enemies = enemies, destroyedEnemies = List.append model.destroyedEnemies destroyedEnemies }
 
 
 
@@ -87,10 +88,11 @@ isOutOfScreen enemy =
     getY enemy.entity.renderingProperties.position < 0
 
 
+getScore : Model -> Int
+getScore model =
+    List.length model.destroyedEnemies * Constant.getScoreUnit
+
+
 view : Model -> List WebGL.Entity
 view model =
     model.enemies |> List.map (.entity >> Entity.view) |> List.concat
-
-
-getTimeout =
-    60 * 3

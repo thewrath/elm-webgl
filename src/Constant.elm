@@ -14,3 +14,11 @@ getWidth =
 
 getHeight =
     800
+
+
+getWaveDefaultTimeout =
+    60 * 3
+
+
+getScoreUnit =
+    10

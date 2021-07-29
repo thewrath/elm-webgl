@@ -24,3 +24,8 @@ Many improvements can be made to the code: :
 - turn angle into radian and add modulo 
 - multiple key support (more than 3)
 - HUD for score and life 
+- Fix page scroll on arrow key down
+- Display score
+- Wave variant
+- Enemy damage
+- Enemy shoot
