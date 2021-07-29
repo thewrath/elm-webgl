@@ -1,5 +1,6 @@
 module Wave exposing (..)
 
+import Array exposing (..)
 import Bullet exposing (..)
 import Collision exposing (..)
 import Constant exposing (..)
@@ -7,6 +8,7 @@ import Enemy exposing (..)
 import Entity exposing (..)
 import Math.Vector2 as Vec2 exposing (getY, vec2)
 import Texture exposing (..)
+import Tuple exposing (..)
 import Type exposing (..)
 import WebGL exposing (Entity, Mesh)
 

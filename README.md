@@ -29,3 +29,5 @@ Many improvements can be made to the code: :
 - Wave variant
 - Enemy damage
 - Enemy shoot
+- Explosion animation
+- Fix bullet / enemy collision

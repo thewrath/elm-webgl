@@ -4,12 +4,13 @@ import Bullet exposing (..)
 import Constant exposing (..)
 import Debug exposing (..)
 import Dict exposing (Dict)
+import Enemy exposing (..)
 import Entity exposing (..)
 import Gun exposing (..)
 import Json.Decode as Decode
 import KeyHandler exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
-import Math.Vector2 as Vec2 exposing (Vec2, vec2)
+import Math.Vector2 as Vec2 exposing (Vec2, length, vec2)
 import RenderingProperties exposing (..)
 import Texture exposing (..)
 import Type exposing (..)
@@ -22,6 +23,8 @@ type alias Model =
     , speed : Float -- Speed in all direction
     , keyStates : KeyStates
     , gun : Gun.Model
+    , isMoving : Bool
+    , isShooting : Bool
     }
 
 
@@ -35,9 +38,11 @@ init mesh camera =
                 |> Entity.withAngle 0
     in
     { entity = entity
-    , speed = 4
+    , speed = Constant.getPlaySpeed
     , keyStates = Dict.empty
     , gun = Gun.Unarmed
+    , isMoving = False
+    , isShooting = False
     }
 
 
@@ -59,17 +64,17 @@ onTexturesLoaded textureContainer ({ gun, entity } as model) =
     }
 
 
-update : Model -> Model
-update model =
+update : Model -> List Enemy.Model -> Model
+update model enemies =
     model
         |> move
         |> shoot
-        |> updateGun
+        |> updateGun enemies
 
 
-updateGun : Model -> Model
-updateGun ({ gun } as model) =
-    { model | gun = Gun.updateBullets gun }
+updateGun : List Enemy.Model -> Model -> Model
+updateGun enemies ({ gun } as model) =
+    { model | gun = Gun.updateBullets gun |> Gun.handleEnemiesCollision enemies }
 
 
 
@@ -115,7 +120,11 @@ move ({ entity } as model) =
 
 applyVelocity : Model -> Vec2 -> Model
 applyVelocity model velocity =
-    { model | entity = Entity.applyVelocity velocity model.entity }
+    let
+        isMoving =
+            not <| (Vec2.length velocity == 0)
+    in
+    { model | entity = Entity.applyVelocity velocity model.entity, isMoving = isMoving }
 
 
 checkSide : ({ x : Float, y : Float } -> { x : Float, y : Float } -> ( Bool, Vec2 )) -> Model -> Model
@@ -156,10 +165,14 @@ shoot ({ gun } as model) =
                             |> Bullet.withPosition model.entity.renderingProperties.position
                             |> Gun.addBullet gun
                             |> Gun.withBulletTimeout 6
+                    , isShooting = True
                 }
 
+            else if g.bulletTimeout /= 0 then
+                { model | isShooting = model.isShooting }
+
             else
-                model
+                { model | isShooting = False }
 
 
 getBullets : Model -> List Bullet.Model
@@ -170,3 +183,12 @@ getBullets model =
 
         Armed gun ->
             gun.bullets
+
+
+view : Model -> List WebGL.Entity
+view model =
+    if model.isMoving || model.isShooting then
+        Entity.view model.entity
+
+    else
+        []

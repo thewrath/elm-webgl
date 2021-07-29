@@ -1,7 +1,9 @@
 module Gun exposing (..)
 
 import Bullet exposing (..)
+import Collision exposing (..)
 import Constant exposing (..)
+import Enemy exposing (..)
 import Entity exposing (..)
 import Math.Vector2 as Vec2 exposing (getY)
 import WebGL exposing (Entity, Mesh, Shader)
@@ -58,6 +60,23 @@ updateBullets model =
 destroyOutOfScreenBullets : Gun -> Gun
 destroyOutOfScreenBullets ({ bullets } as gun) =
     { gun | bullets = List.filter (not << isOutOfScreen) bullets }
+
+
+handleEnemiesCollision : List Enemy.Model -> Model -> Model
+handleEnemiesCollision enemies model =
+    case model of
+        Unarmed ->
+            model
+
+        Armed gun ->
+            let
+                checkBulletEnemiesCollision bullet =
+                    (not << List.isEmpty) <| List.filter (\e -> Collision.checkCollision (Entity.toCollisionBox bullet.entity) (Entity.toCollisionBox e.entity)) enemies
+
+                bullets =
+                    List.filter (not << checkBulletEnemiesCollision) gun.bullets
+            in
+            Armed { gun | bullets = bullets }
 
 
 

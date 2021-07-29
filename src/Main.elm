@@ -93,7 +93,7 @@ init _ =
     ( { textures = Nothing
       , meshBank = meshBank
       , wave = Wave.empty
-      , playerModel = Player.init initMeshBank.textureMesh Constant.orthographicCamera |> Player.withPosition (vec2 400 400)
+      , playerModel = Player.init initMeshBank.textureMesh Constant.orthographicCamera |> Player.withPosition (vec2 (Constant.getWidth / 2) (Constant.getHeight / 2))
       }
     , Cmd.batch
         [ loadTextures textureOptions textures TexturesLoaded TexturesError
@@ -124,11 +124,13 @@ update action ({ wave, playerModel } as model) =
 
         AnimationFrame delta ->
             let
+                oldGun =
+                    playerModel.gun
+
                 newModel =
-                    { model
-                        | wave = Wave.update wave |> handleBulletsCollision (Gun.getBullets playerModel.gun)
-                        , playerModel = Player.update playerModel
-                    }
+                    model
+                        |> updateWave (Wave.update wave |> handleBulletsCollision (Gun.getBullets oldGun))
+                        |> updatePlayerModel (Player.update playerModel wave.enemies)
             in
             ( newModel, Cmd.none )
 
@@ -137,16 +139,21 @@ update action ({ wave, playerModel } as model) =
 
         OnKeyDown keycode ->
             Cmd.none
-                |> Tuple.pair (updatePlayerModel model (Player.withKeyStates (KeyHandler.handleKeyDown playerModel.keyStates keycode) playerModel))
+                |> Tuple.pair (updatePlayerModel (Player.withKeyStates (KeyHandler.handleKeyDown playerModel.keyStates keycode) playerModel) model)
 
         OnKeyUp keycode ->
             Cmd.none
-                |> Tuple.pair (updatePlayerModel model (Player.withKeyStates (KeyHandler.handleKeyUp playerModel.keyStates keycode) playerModel))
+                |> Tuple.pair (updatePlayerModel (Player.withKeyStates (KeyHandler.handleKeyUp playerModel.keyStates keycode) playerModel) model)
 
 
-updatePlayerModel : Model -> Player.Model -> Model
-updatePlayerModel model playerModel =
+updatePlayerModel : Player.Model -> Model -> Model
+updatePlayerModel playerModel model =
     { model | playerModel = playerModel }
+
+
+updateWave : Wave.Model -> Model -> Model
+updateWave wave model =
+    { model | wave = wave }
 
 
 view : Model -> Html msg
@@ -165,7 +172,7 @@ view ({ playerModel, wave } as model) =
                 , style "background-color" "black"
                 , style "margin" "auto"
                 ]
-                (List.concat [ Gun.view playerModel.gun, Wave.view wave, Entity.view playerModel.entity ])
+                (List.concat [ Gun.view playerModel.gun, Wave.view wave, Player.view playerModel ])
 
 
 subscriptions : Model -> Sub Action

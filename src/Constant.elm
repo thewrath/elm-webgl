@@ -22,3 +22,7 @@ getWaveDefaultTimeout =
 
 getScoreUnit =
     10
+
+
+getPlaySpeed =
+    10
