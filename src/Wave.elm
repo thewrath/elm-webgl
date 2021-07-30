@@ -90,4 +90,4 @@ getScore model =
 
 view : Model -> List WebGL.Entity
 view model =
-    model.enemies |> List.map (.entity >> Entity.view) |> List.concat
+    model.enemies |> List.map Enemy.view |> List.concat

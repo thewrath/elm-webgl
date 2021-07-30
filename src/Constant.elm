@@ -26,3 +26,7 @@ getScoreUnit =
 
 getPlayerSpeed =
     10
+
+
+getDefaultBulletSpeed =
+    20.0

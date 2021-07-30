@@ -193,4 +193,4 @@ getBullets model =
 
 view : Model -> List WebGL.Entity
 view model =
-    Entity.view model.entity
+    List.append (Entity.view model.entity) (Gun.view model.gun)

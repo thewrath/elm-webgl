@@ -1,6 +1,7 @@
 module Bullet exposing (..)
 
 import Collision exposing (..)
+import Constant exposing (..)
 import Entity exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
@@ -27,12 +28,17 @@ init mesh camera =
                 |> Entity.withSize (vec2 8 8)
                 |> Entity.withAngle 0
     in
-    Model entity 20.0
+    Model entity Constant.getDefaultBulletSpeed
 
 
 withPosition : Position -> Model -> Model
 withPosition position model =
     { model | entity = Entity.withPosition position model.entity }
+
+
+withSpeed : Float -> Model -> Model
+withSpeed speed model =
+    { model | speed = speed }
 
 
 withTexture : String -> TextureContainer -> Model -> Model

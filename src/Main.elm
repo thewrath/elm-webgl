@@ -113,7 +113,11 @@ update action ({ wave, playerModel, meshBank } as model) =
             let
                 enemyGun =
                     Gun.empty
-                        |> Gun.withBulletPrototype (Bullet.init meshBank.textureMesh Constant.orthographicCamera |> Bullet.withTexture "Bullet" textures)
+                        |> Gun.withBulletPrototype
+                            (Bullet.init meshBank.textureMesh Constant.orthographicCamera
+                                |> Bullet.withTexture "Bullet" textures
+                                |> Bullet.withSpeed (-Constant.getDefaultBulletSpeed / 2)
+                            )
 
                 waveEnemyPrototype =
                     Wave.createEnemyPrototype meshBank.textureMesh textures |> Enemy.withGun enemyGun
@@ -181,10 +185,12 @@ view ({ playerModel, wave } as model) =
                 [ width Constant.getWidth
                 , height Constant.getHeight
                 , style "display" "block"
-                , style "background-color" "black"
+                , style "border-color" "blue"
+                , style "border-style" "solid"
+                , style "background-color" "#0F0B3C"
                 , style "margin" "auto"
                 ]
-                (List.concat [ Gun.view playerModel.gun, Wave.view wave, Player.view playerModel ])
+                (List.concat [ Wave.view wave, Player.view playerModel ])
 
 
 subscriptions : Model -> Sub Action

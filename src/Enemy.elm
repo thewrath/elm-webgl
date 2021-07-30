@@ -51,8 +51,8 @@ withGun gun model =
 
 
 update : Model -> Model
-update model =
-    model
+update ({ gun } as model) =
+    { model | gun = Gun.updateBullets gun }
         |> goDown
         |> rotate
         |> shoot
@@ -81,8 +81,13 @@ shoot ({ gun } as model) =
                         g.bulletPrototype
                             |> Bullet.withPosition model.entity.renderingProperties.position
                             |> Gun.addBullet gun
-                            |> Gun.withBulletTimeout 12
+                            |> Gun.withBulletTimeout 60
                 }
 
             else
                 model
+
+
+view : Model -> List WebGL.Entity
+view model =
+    List.append (Entity.view model.entity) (Gun.view model.gun)
