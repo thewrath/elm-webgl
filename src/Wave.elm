@@ -6,6 +6,7 @@ import Collision exposing (..)
 import Constant exposing (..)
 import Enemy exposing (..)
 import Entity exposing (..)
+import Gun exposing (..)
 import Math.Vector2 as Vec2 exposing (getY, vec2)
 import Texture exposing (..)
 import Tuple exposing (..)
@@ -86,6 +87,17 @@ isOutOfScreen enemy =
 getScore : Model -> Int
 getScore model =
     List.length model.destroyedEnemies * Constant.getScoreUnit
+
+
+
+-- return list of all bullets of all enemies
+
+
+getBullets : Model -> List Bullet.Model
+getBullets model =
+    model.enemies
+        |> List.map (Gun.getBullets << .gun)
+        |> List.concat
 
 
 view : Model -> List WebGL.Entity

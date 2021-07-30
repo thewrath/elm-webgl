@@ -4,7 +4,7 @@ import Browser
 import Browser.Dom exposing (Viewport, getViewport)
 import Browser.Events exposing (onAnimationFrameDelta, onKeyDown, onKeyUp)
 import Bullet exposing (..)
-import Collision exposing (handleListCollision)
+import Collision exposing (handleManyToMany)
 import Constant exposing (..)
 import Dict exposing (Dict)
 import Enemy exposing (..)
@@ -143,10 +143,13 @@ update action ({ wave, playerModel, meshBank } as model) =
                     model
                         |> updateWave
                             (wave
-                                |> Wave.withEnemies (handleListCollision wave.enemies .entity (Gun.getBullets oldGun) .entity)
+                                |> Wave.withEnemies (handleManyToMany wave.enemies .entity (Gun.getBullets oldGun) .entity)
                                 |> Wave.update
                             )
-                        |> updatePlayerModel (Player.update playerModel wave.enemies)
+                        |> updatePlayerModel
+                            (Player.update playerModel wave.enemies
+                                |> Player.handleBulletsCollision (Wave.getBullets wave)
+                            )
             in
             ( newModel, Cmd.none )
 

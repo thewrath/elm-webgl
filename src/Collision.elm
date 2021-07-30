@@ -22,10 +22,16 @@ checkCollision boxA boxB =
         && (getY boxA.size + getY boxA.position > getY boxB.position)
 
 
-handleListCollision : List a -> (a -> Entity.Model) -> List b -> (b -> Entity.Model) -> List a
-handleListCollision targets targetTransform against againstTransform =
+handleManyToMany : List a -> (a -> Entity.Model) -> List b -> (b -> Entity.Model) -> List a
+handleManyToMany targets targetTransform against againstTransform =
     let
         checkOneToOther t =
             (not << List.isEmpty) <| List.filter (\a -> checkCollision (targetTransform t |> boxFromEntity) (againstTransform a |> boxFromEntity)) against
     in
     List.filter (not << checkOneToOther) targets
+
+
+handleOneToMany : a -> (a -> Entity.Model) -> List b -> (b -> Entity.Model) -> Bool
+handleOneToMany target targetTransform against againstTransform =
+    handleManyToMany (List.singleton target) targetTransform against againstTransform
+        |> List.isEmpty

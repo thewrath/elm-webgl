@@ -1,7 +1,7 @@
 module Player exposing (..)
 
 import Bullet exposing (..)
-import Collision exposing (handleListCollision)
+import Collision exposing (handleOneToMany)
 import Constant exposing (..)
 import Debug exposing (..)
 import Dict exposing (Dict)
@@ -78,7 +78,7 @@ updateGun enemies ({ gun } as model) =
     { model
         | gun =
             gun
-                |> Gun.withBullets (handleListCollision (Gun.getBullets gun) .entity enemies .entity)
+                |> Gun.withBullets (Collision.handleManyToMany (Gun.getBullets gun) .entity enemies .entity)
                 |> Gun.updateBullets
     }
 
@@ -147,6 +147,19 @@ checkSide checker ({ entity } as model) =
     in
     if collision then
         withPosition newPosition model
+
+    else
+        model
+
+
+
+-- @Todo reduce player lives
+
+
+handleBulletsCollision : List Bullet.Model -> Model -> Model
+handleBulletsCollision bullets model =
+    if handleOneToMany model .entity bullets .entity then
+        model
 
     else
         model

@@ -75,13 +75,10 @@ destroyOutOfScreenBullets ({ bullets } as gun) =
     { gun | bullets = List.filter (not << isOutOfScreen) bullets }
 
 
-
--- Only check y axe because bullet only go up
-
-
 isOutOfScreen : Bullet.Model -> Bool
 isOutOfScreen bullet =
-    getY bullet.entity.renderingProperties.position > Constant.getHeight
+    (getY bullet.entity.renderingProperties.position > Constant.getHeight)
+        || (getY bullet.entity.renderingProperties.position < 0)
 
 
 view : Model -> List WebGL.Entity
