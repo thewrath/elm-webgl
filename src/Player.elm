@@ -1,6 +1,7 @@
 module Player exposing (..)
 
 import Bullet exposing (..)
+import Collision exposing (handleListCollision)
 import Constant exposing (..)
 import Debug exposing (..)
 import Dict exposing (Dict)
@@ -38,7 +39,7 @@ init mesh camera =
                 |> Entity.withAngle 0
     in
     { entity = entity
-    , speed = Constant.getPlaySpeed
+    , speed = Constant.getPlayerSpeed
     , keyStates = Dict.empty
     , gun = Gun.Unarmed
     , isMoving = False
@@ -74,7 +75,12 @@ update model enemies =
 
 updateGun : List Enemy.Model -> Model -> Model
 updateGun enemies ({ gun } as model) =
-    { model | gun = Gun.updateBullets gun |> Gun.handleEnemiesCollision enemies }
+    { model
+        | gun =
+            gun
+                |> Gun.withBullets (handleListCollision (Gun.getBullets gun) .entity enemies .entity)
+                |> Gun.updateBullets
+    }
 
 
 
@@ -164,7 +170,7 @@ shoot ({ gun } as model) =
                         g.bulletPrototype
                             |> Bullet.withPosition model.entity.renderingProperties.position
                             |> Gun.addBullet gun
-                            |> Gun.withBulletTimeout 6
+                            |> Gun.withBulletTimeout 12
                     , isShooting = True
                 }
 

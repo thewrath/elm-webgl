@@ -1,6 +1,5 @@
 module Entity exposing (..)
 
-import Collision exposing (Box)
 import Dict exposing (Dict)
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, add, vec2)
@@ -51,11 +50,6 @@ withAngle angle model =
 withTexture : String -> TextureContainer -> Model -> Model
 withTexture textureName textures model =
     { model | texture = Dict.get textureName textures }
-
-
-toCollisionBox : Model -> Box
-toCollisionBox model =
-    Box model.renderingProperties.position model.renderingProperties.size
 
 
 view : Model -> List WebGL.Entity

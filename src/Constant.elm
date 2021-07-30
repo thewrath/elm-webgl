@@ -24,5 +24,5 @@ getScoreUnit =
     10
 
 
-getPlaySpeed =
+getPlayerSpeed =
     10

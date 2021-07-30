@@ -1,5 +1,6 @@
 module Enemy exposing (..)
 
+import Bullet exposing (..)
 import Entity exposing (..)
 import Gun exposing (..)
 import Math.Matrix4 as Mat4 exposing (Mat4)
@@ -15,7 +16,7 @@ import WebGL.Texture exposing (Texture)
 type alias Model =
     { entity : Entity.Model
     , speed : Float -- Down speed
-    , gun : Gun
+    , gun : Gun.Model
     }
 
 
@@ -44,7 +45,7 @@ withTexture textures textureName model =
     { model | entity = Entity.withTexture textures textureName model.entity }
 
 
-withGun : Gun -> Model -> Model
+withGun : Gun.Model -> Model -> Model
 withGun gun model =
     { model | gun = gun }
 
@@ -70,10 +71,10 @@ rotate ({ entity } as model) =
 shoot : Model -> Model
 shoot ({ gun } as model) =
     case gun of
-        Unarmed ->
+        Gun.Unarmed ->
             model
 
-        Armed g ->
+        Gun.Armed g ->
             if g.bulletTimeout == 0 then
                 { model
                     | gun =

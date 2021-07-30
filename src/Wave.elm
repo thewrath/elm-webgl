@@ -31,6 +31,11 @@ withEnemyPrototype enemyPrototype model =
     { model | enemyPrototype = Just enemyPrototype }
 
 
+withEnemies : List Enemy.Model -> Model -> Model
+withEnemies enemies model =
+    { model | enemies = enemies }
+
+
 createEnemyPrototype : Mesh TextureVertex -> TextureContainer -> Enemy.Model
 createEnemyPrototype mesh textures =
     Enemy.init mesh Constant.orthographicCamera
@@ -67,18 +72,6 @@ update ({ timeout, enemies } as model) =
 destroyOutOfScreenEnemies : Model -> Model
 destroyOutOfScreenEnemies ({ enemies } as model) =
     { model | enemies = List.filter (not << isOutOfScreen) enemies }
-
-
-handleBulletsCollision : List Bullet.Model -> Model -> Model
-handleBulletsCollision bullets model =
-    let
-        checkEnemyBulletsCollision enemy =
-            (not << List.isEmpty) <| List.filter (\b -> Collision.checkCollision (Entity.toCollisionBox b.entity) (Entity.toCollisionBox enemy.entity)) bullets
-
-        ( enemies, destroyedEnemies ) =
-            List.partition (not << checkEnemyBulletsCollision) model.enemies
-    in
-    { model | enemies = enemies, destroyedEnemies = List.append model.destroyedEnemies destroyedEnemies }
 
 
 
