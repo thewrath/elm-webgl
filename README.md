@@ -26,6 +26,6 @@ Many improvements can be made to the code: :
 - Display score
 - Wave variant
 - Enemy damage
-- Enemy shoot
 - Explosion animation
 - Fix bullet / enemy collision
+- Player lives
